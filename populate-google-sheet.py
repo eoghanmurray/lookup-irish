@@ -253,10 +253,10 @@ def get_teanglann_definition(word):
                 maybe_to = ''
                 if type_ and type_.startswith('Verb'):
                     maybe_to = 'to '
-                defn = maybe_to + '/'.join([tgw for tgw in re.split('[,;] *', trans_text) if tgw in candidates])
+                defn = '/'.join([tgw for tgw in re.split('[,;] *', trans_text) if tgw in candidates])
                 if defn:
-                    print(f'{i}.', defn, '[' + raw_text + ']')
-                    definitions.append(defn)
+                    print(f'{i}.', maybe_to + defn, '[' + raw_text + ']')
+                    definitions.append(maybe_to + defn)
                 else:
                     print(f'{i}.', '[' + raw_text + ']')
         if type_ and type_ not in parts_of_speech:
