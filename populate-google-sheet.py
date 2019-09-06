@@ -15,7 +15,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # The ID and range of a sample spreadsheet.
 SAMPLE_SPREADSHEET_ID = '1kiZlZp8weyILstvtL0PfIQkQGzuG7oZfP8n_qkMFAWo'
-SAMPLE_RANGE_NAME = '6450-most-frequent-irish-words!B2:D'
+SAMPLE_RANGE_NAME = '6450-most-frequent-irish-words!B2:E'
 
 
 def main():
@@ -56,27 +56,28 @@ def main():
         count = 0
         for n, row in enumerate(values):
             cell_no = n + 2  # 1 for 0 index, 1 for range offset
-            if False and len(row) == 1:
-                # only EN column is defined
-                print(f'Looking up B{n}: {row[0]}')
-                pass
-            elif row[0] == 'N':  # testing
-                values = [
-                    [
-                        'TEST AUTO'
-                    ],
-                ]
-                body = {
-                    'values': values
-                }
-                result = sheet.values().update(
-                    spreadsheetId=SAMPLE_SPREADSHEET_ID, range=f'D{cell_no}',
-                    valueInputOption='RAW', body=body).execute()
-                print('{0} cells updated.'.format(result.get('updatedCells')))
-                break
+            if len(row) == 1:  # only GA column is defined
+                PoS, EN, Gender = get_teanglann_definition(row[0])
+                if EN:
+                    values = [
+                        [
+                            PoS,
+                            EN + '\n[AUTO]',
+                            Gender,
+                        ],
+                    ]
+                    body = {
+                        'values': values,
+                    }
+                    result = sheet.values().update(
+                        spreadsheetId=SAMPLE_SPREADSHEET_ID,
+                        range=f'C{cell_no}:E{cell_no}',
+                        valueInputOption='RAW',
+                        body=body).execute()
+                    print('{0} cells updated.'.format(result.get('updatedCells')))
                 count += 1
 
-            if count == 20:
+            if count == 5:
                 break
 
 
@@ -148,6 +149,9 @@ def get_teanglann_definition(word):
     print(candidates)
 
     soup = get_definition_soup(word, 'teanglann', lang='ga')
+    parts_of_speech = []
+    definitions = []
+    genders = []
     for entry in soup.find_all(class_='entry'):
 
         # expand abbreviations
@@ -245,12 +249,20 @@ def get_teanglann_definition(word):
                 print(f'{i}. [' + raw_text + ']')
             else:
                 trans_text = clean_text(transs[0].get_text(), word)
-                defn = '/'.join([tgw for tgw in re.split('[,;] *', trans_text) if tgw in candidates])
+                maybe_to = ''
+                if type_ and type_.startswith('Verb'):
+                    maybe_to = 'to '
+                defn = maybe_to + '/'.join([tgw for tgw in re.split('[,;] *', trans_text) if tgw in candidates])
                 if defn:
                     print(f'{i}.', defn, '[' + raw_text + ']')
+                    definitions.append(defn)
                 else:
                     print(f'{i}.', '[' + raw_text + ']')
-
+        if type_ and type_ not in parts_of_speech:
+            parts_of_speech.append(type_)
+        if gender and gender not in genders:
+            genders.append(gender)
+    return ' & '.join(parts_of_speech), '\n'.join(definitions), '\n'.join(genders)
 
 def clean_text(text, word):
     text = text.replace('\n', '')
@@ -268,7 +280,9 @@ def manual_debug():
 
 
 if __name__ == '__main__':
-    if False:
+    if True:
+        main()
+    elif False:
         # testing male/female:
         get_teanglann_definition('dóid')
         get_teanglann_definition('dogma')
@@ -285,5 +299,3 @@ if __name__ == '__main__':
     elif True:
         # has a non-translated '1. Dim. of BOTH.' in output
         get_teanglann_definition('bothán')
-    else:
-        main()
