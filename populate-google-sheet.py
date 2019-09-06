@@ -158,7 +158,8 @@ def get_teanglann_definition(word):
         for abbr in entry.find_all(title=True):
             abbr_text = abbr.text.strip()
             abbr_title = abbr['title'].strip()
-            if len(abbr_text) > 4 or len(abbr_text) > len(abbr_title):
+            if (len(abbr_text) > 4 and not abbr_title.startswith(abbr_text)) or \
+                len(abbr_text) > len(abbr_title):
                 manual_debug()
             abbr.string.replace_with(abbr_title)
             if abbr.next_sibling and abbr.next_sibling.string.lstrip().startswith('.'):
