@@ -4,6 +4,10 @@ import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+import os
+from bs4 import BeautifulSoup
+import requests
+import re
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -73,5 +77,153 @@ def main():
                 break
 
 
+def get_definition_soup(word, dictionary, lang='ga'):
+    if dictionary == 'teanglann':
+        if lang == 'ga':
+            href = 'https://www.teanglann.ie/en/fgb/' + word
+        elif lang == 'ga-fb':
+            # a separate dictionary rather than a separate language
+            href = 'https://www.teanglann.ie/en/fb/' + word
+    elif dictionary == 'foclóir':
+        if lang == 'en':
+            href = 'https://www.focloir.ie/en/dictionary/ei/' + word
+        else:
+            href = 'https://www.focloir.ie/en/search/ei/adv?inlanguage=ga&q=' + word
+    local_dir = os.path.join(os.path.dirname(__file__), '.webcache',  dictionary + '-' +lang)
+    local_path = os.path.join(local_dir, word + '.html')
+    if not os.path.exists(local_dir):
+        os.makedirs(local_dir)
+    if os.path.exists(local_path):
+        contents = open(local_path, 'r').read()
+        soup = BeautifulSoup(contents, features='html5lib')
+    else:
+        page = requests.get(href)
+        soup = BeautifulSoup(page.text, features='html5lib')
+        # writing the soup rather than raw response as it converts to utf8
+        open(local_path, 'w').write(soup.prettify())
+    return soup
+
+
+def get_teanglann_definition(word):
+    soup = get_definition_soup(word, 'teanglann', lang='ga')
+    for entry in soup.find_all(class_='entry'):
+
+        # expand abbreviations
+        for abbr in entry.find_all(title=True):
+            abbr_text = abbr.text.strip()
+            abbr_title = abbr['title'].strip()
+            if len(abbr_text) > 4 or len(abbr_text) > len(abbr_title):
+                import pdb; pdb.set_trace();
+            abbr.string.replace_with(abbr_title)
+            if abbr.next_sibling and abbr.next_sibling.string.strip() == '.':
+                abbr.next_sibling.string = ''
+
+        if not entry.text.strip().startswith(word):
+            import pdb; pdb.set_trace();
+
+        split_point = None
+        type_ = gender = None
+        if entry.find(title="feminine") or entry.find(title="masculine"):
+            soup_fb = get_definition_soup(word, 'teanglann', lang='ga-fb')
+            entry_fb = soup_fb.find(class_='entry')
+            type_ = 'Noun'
+            if entry.find(title="feminine"):
+                gender = 'nf'
+                k_lookup = 'bain'
+                split_point = entry.find(title="feminine")
+            elif entry.find(title="masculine"):
+                gender = 'nm'
+                k_lookup = 'fir'
+                split_point = entry.find(title="masculine")
+            if entry_fb:
+                noun_decs = entry_fb.find_all(string=re.compile(k_lookup + '[1-4]'))
+                declensions = set()
+                for noun_dec in noun_decs:
+                    declensions.add(noun_dec.string.strip()[-1])
+                if len(declensions) > 1:
+                    import pdb; pdb.set_trace();
+                elif declensions:
+                    gender += declensions.pop()
+        elif entry.find(title="adjective"):
+            type_ = 'Adjective'
+            gender = 'a'
+            dec = entry.find(title="adjective").next_sibling
+            if dec.strip().strip('.') in ['1', '2', '3', '4']:  # to check: think it only goes up to a3
+                gender += dec.strip().strip('.')
+            else:
+                import pdb; pdb.set_trace();
+            split_point = entry.find(title="adjective")
+        elif entry.find(title="transitive verb") and entry.find(title="and intransitive"):
+            type_= 'Verb - Transitive & Intransitive'
+        elif entry.find(title="transitive verb"):
+            type_= 'Verb - Transitive'
+        elif entry.find(title="conjunction"):
+            type_= 'Conjugation'
+
+
+        heading = ''
+        if split_point:
+            split_point_top = split_point
+            while split_point_top.parent != entry:
+                split_point_top = split_point_top.parent
+            prev_sibs = reversed([ps for ps in split_point_top.previous_siblings])
+            for preamble in prev_sibs:
+                heading += preamble.extract().string.strip()
+            split_point.extract()
+
+        entry_text = re.sub('[ ]{2,}', ' ', entry.text.replace('\n', '')).strip()
+        entry_text = entry_text.replace('~', word)
+
+        mainentry = None
+        subentries = []
+        for n in range(1, 1000):
+            if f'{n}.' in entry_text:
+                pre, entry_text = entry_text.split(f'{n}.', 1)
+                pre = pre.strip()
+                entry_text = entry_text.strip()
+                if n == 1:
+                    mainentry = pre
+                else:
+                    subentries.append(pre)
+            else:
+                if n == 1:
+                    mainentry = entry_text
+                else:
+                    subentries.append(entry_text)
+                break
+
+        print()
+        print(word, type_, gender)
+        if heading:
+            print('::Heading:', heading)
+        if mainentry:
+            print('::Main:', mainentry)
+        if entry.find(class_='trans'):
+            for trans in entry.find_all(class_='trans'):
+                if trans and trans.text.strip():
+                    print(trans.text.strip())
+        else:
+            for i, subentry in enumerate(subentries):
+                print(f'{i+1}.', subentry)
+
+
 if __name__ == '__main__':
-    main()
+    if False:
+        # testing male/female:
+        get_teanglann_definition('dóid')
+        get_teanglann_definition('dogma')
+    elif False:
+        # has entry pointing to DUGA
+        get_teanglann_definition('doic')
+    elif False:
+        # no entry in fb (for noun declension)
+        get_teanglann_definition('dóideog')
+    elif False:
+        # some monsters of definitions including verb & noun
+        get_teanglann_definition('dóigh')
+        get_teanglann_definition('súil')
+    elif True:
+        # something easy?
+        get_teanglann_definition('bothán')
+    else:
+        main()
