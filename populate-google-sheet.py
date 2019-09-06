@@ -173,7 +173,7 @@ def get_teanglann_definition(word):
         elif entry.find(title="conjunction"):
             type_ = 'Conjugation'
 
-        heading = ''
+        subentries = [soup.new_tag('div')]
         if split_point:
             split_point_top = split_point
             while split_point_top.parent != entry:
@@ -181,44 +181,45 @@ def get_teanglann_definition(word):
             prev_sibs = [ps for ps in
                          split_point_top.previous_siblings]  # copy
             for preamble in reversed(prev_sibs):
-                heading += preamble.extract().string.strip()
+                subentries[0].append(preamble)
             split_point.extract()
 
-        entry_text = entry.text.replace('\n', '')
-        entry_text = re.sub('[ ]{2,}', ' ', entry_text).strip()
-        entry_text = entry_text.replace('~', word)
-
-        mainentry = None
-        subentries = []
-        for n in range(1, 1000):
-            if f'{n}.' in entry_text:
-                pre, entry_text = entry_text.split(f'{n}.', 1)
-                pre = pre.strip()
-                entry_text = entry_text.strip()
-                if n == 1:
-                    mainentry = pre
-                else:
-                    subentries.append(pre)
+        n = 1
+        for node in entry.contents[:]:
+            if hasattr(node, 'get_text'):
+                node_text = node.get_text()
             else:
-                if n == 1:
-                    mainentry = entry_text
-                else:
-                    subentries.append(entry_text)
-                break
+                node_text = node.string
+            if f'{n}.' in node_text:
+                pre, post = node_text.split(f'{n}.', 1)
+                if pre.strip():
+                    subentries[-1].append(pre.strip())
+                subentries.append(soup.new_tag('div'))
+                if post.strip():
+                    subentries[-1].append(post.strip())
+                n += 1
+            else:
+                subentries[-1].append(node)
 
         print()
         print(word, type_, gender)
-        if heading:
-            print('::Heading:', heading)
-        if mainentry:
-            print('::Main:', mainentry)
-        if entry.find(class_='trans'):
-            for trans in entry.find_all(class_='trans'):
-                if trans and trans.text.strip():
-                    print(trans.text.strip())
-        else:
-            for i, subentry in enumerate(subentries):
-                print(f'{i+1}.', subentry)
+        for i, subentry in enumerate(subentries):
+            transs = subentry.find_all(class_='trans')
+            raw_text = clean_text(' '.join(subentry.stripped_strings), word)
+            if len(transs) > 1:
+                print(f'{i}. [x{len(transs)}', raw_text + ']')
+            elif len(transs) == 1:
+                print(f'{i}.', clean_text(transs[0].get_text(), word), f'[', raw_text + ']')
+            else:
+                print(f'{i}. [' + raw_text + ']')
+
+
+def clean_text(text, word):
+    text = text.replace('\n', '')
+    text = text.replace('~', word)
+    text = re.sub('[ ]{2,}', ' ', text).strip()  # repeated spaces
+    text = text.rstrip('.')  # trailing dots
+    return text
 
 
 def manual_debug():
@@ -244,7 +245,7 @@ if __name__ == '__main__':
         get_teanglann_definition('dóigh')
         get_teanglann_definition('súil')
     elif True:
-        # something easy?
+        # has a non-translated '1. Dim. of BOTH.' in output
         get_teanglann_definition('bothán')
     else:
         main()
