@@ -55,8 +55,11 @@ def main():
         count = 0
         for n, row in enumerate(values):
             cell_no = n + 2  # 1 for 0 index, 1 for range offset
-            #if len(row) == 1:  # only EN is defined
-            if row[0] == 'N':
+            if False and len(row) == 1:
+                # only EN column is defined
+                print(f'Looking up B{n}: {row[0]}')
+                pass
+            elif row[0] == 'N':  # testing
                 values = [
                     [
                         'TEST AUTO'
@@ -70,7 +73,6 @@ def main():
                     valueInputOption='RAW', body=body).execute()
                 print('{0} cells updated.'.format(result.get('updatedCells')))
                 break
-                #print(f'B{n}: {row[0]}')
                 count += 1
 
             if count == 20:
@@ -79,17 +81,23 @@ def main():
 
 def get_definition_soup(word, dictionary, lang='ga'):
     if dictionary == 'teanglann':
+        href = 'https://www.teanglann.ie'
         if lang == 'ga':
-            href = 'https://www.teanglann.ie/en/fgb/' + word
+            href += '/en/fgb/' + word
         elif lang == 'ga-fb':
             # a separate dictionary rather than a separate language
-            href = 'https://www.teanglann.ie/en/fb/' + word
+            href += '/en/fb/' + word
     elif dictionary == 'foclóir':
+        href = 'https://www.focloir.ie'
         if lang == 'en':
-            href = 'https://www.focloir.ie/en/dictionary/ei/' + word
+            href += '/en/dictionary/ei/' + word
         else:
-            href = 'https://www.focloir.ie/en/search/ei/adv?inlanguage=ga&q=' + word
-    local_dir = os.path.join(os.path.dirname(__file__), '.webcache',  dictionary + '-' +lang)
+            href += '/en/search/ei/adv?inlanguage=ga&q=' + word
+    local_dir = os.path.join(
+        os.path.dirname(__file__),
+        '.webcache',
+        dictionary + '-' + lang
+    )
     local_path = os.path.join(local_dir, word + '.html')
     if not os.path.exists(local_dir):
         os.makedirs(local_dir)
@@ -113,13 +121,13 @@ def get_teanglann_definition(word):
             abbr_text = abbr.text.strip()
             abbr_title = abbr['title'].strip()
             if len(abbr_text) > 4 or len(abbr_text) > len(abbr_title):
-                import pdb; pdb.set_trace();
+                manual_debug()
             abbr.string.replace_with(abbr_title)
             if abbr.next_sibling and abbr.next_sibling.string.strip() == '.':
                 abbr.next_sibling.string = ''
 
         if not entry.text.strip().startswith(word):
-            import pdb; pdb.set_trace();
+            manual_debug()
 
         split_point = None
         type_ = gender = None
@@ -136,42 +144,47 @@ def get_teanglann_definition(word):
                 k_lookup = 'fir'
                 split_point = entry.find(title="masculine")
             if entry_fb:
-                noun_decs = entry_fb.find_all(string=re.compile(k_lookup + '[1-4]'))
+                noun_decs = entry_fb.find_all(
+                    string=re.compile(k_lookup + '[1-4]')
+                )
                 declensions = set()
                 for noun_dec in noun_decs:
                     declensions.add(noun_dec.string.strip()[-1])
                 if len(declensions) > 1:
-                    import pdb; pdb.set_trace();
+                    manual_debug()
                 elif declensions:
                     gender += declensions.pop()
         elif entry.find(title="adjective"):
             type_ = 'Adjective'
             gender = 'a'
             dec = entry.find(title="adjective").next_sibling
-            if dec.strip().strip('.') in ['1', '2', '3', '4']:  # to check: think it only goes up to a3
+            # to check: think it only goes up to a3
+            if dec.strip().strip('.') in ['1', '2', '3', '4']:
                 gender += dec.strip().strip('.')
             else:
-                import pdb; pdb.set_trace();
+                manual_debug()
             split_point = entry.find(title="adjective")
-        elif entry.find(title="transitive verb") and entry.find(title="and intransitive"):
-            type_= 'Verb - Transitive & Intransitive'
+        elif (entry.find(title="transitive verb") and
+              entry.find(title="and intransitive")):
+            type_ = 'Verb - Transitive & Intransitive'
         elif entry.find(title="transitive verb"):
-            type_= 'Verb - Transitive'
+            type_ = 'Verb - Transitive'
         elif entry.find(title="conjunction"):
-            type_= 'Conjugation'
-
+            type_ = 'Conjugation'
 
         heading = ''
         if split_point:
             split_point_top = split_point
             while split_point_top.parent != entry:
                 split_point_top = split_point_top.parent
-            prev_sibs = reversed([ps for ps in split_point_top.previous_siblings])
-            for preamble in prev_sibs:
+            prev_sibs = [ps for ps in
+                         split_point_top.previous_siblings]  # copy
+            for preamble in reversed(prev_sibs):
                 heading += preamble.extract().string.strip()
             split_point.extract()
 
-        entry_text = re.sub('[ ]{2,}', ' ', entry.text.replace('\n', '')).strip()
+        entry_text = entry.text.replace('\n', '')
+        entry_text = re.sub('[ ]{2,}', ' ', entry_text).strip()
         entry_text = entry_text.replace('~', word)
 
         mainentry = None
@@ -205,6 +218,13 @@ def get_teanglann_definition(word):
         else:
             for i, subentry in enumerate(subentries):
                 print(f'{i+1}.', subentry)
+
+
+def manual_debug():
+    import sys
+    import pdb
+    p = pdb.Pdb()
+    p.set_trace(sys._getframe().f_back)
 
 
 if __name__ == '__main__':
