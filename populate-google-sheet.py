@@ -80,7 +80,8 @@ def main():
                 break
 
 
-def get_definition_soup(word, dictionary, lang='ga'):
+def get_definition_soup(word, dictionary, lang='ga', page_no=1):
+    headers = {}
     if dictionary == 'teanglann':
         href = 'https://www.teanglann.ie'
         if lang == 'ga':
@@ -89,31 +90,63 @@ def get_definition_soup(word, dictionary, lang='ga'):
             # a separate dictionary rather than a separate language
             href += '/en/fb/' + word
     elif dictionary == 'foclóir':
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/76.0.3809.100 Chrome/76.0.3809.100 Safari/537.36'
+        }
         href = 'https://www.focloir.ie'
         if lang == 'en':
             href += '/en/dictionary/ei/' + word
         else:
-            href += '/en/search/ei/adv?inlanguage=ga&q=' + word
+            href += f'/en/search/ei/adv?inlanguage=ga&page={page_no}&q=' + word
     local_dir = os.path.join(
         os.path.dirname(__file__),
         '.webcache',
         dictionary + '-' + lang
     )
-    local_path = os.path.join(local_dir, word + '.html')
+    if page_no != 1:
+        local_path = os.path.join(local_dir, f'{word}-{page_no}.html')
+    else:
+        local_path = os.path.join(local_dir, word + '.html')
     if not os.path.exists(local_dir):
         os.makedirs(local_dir)
     if os.path.exists(local_path):
         contents = open(local_path, 'r').read()
         soup = BeautifulSoup(contents, features='html5lib')
     else:
-        page = requests.get(href)
+        page = requests.get(href, headers=headers)
         soup = BeautifulSoup(page.text, features='html5lib')
         # writing the soup rather than raw response as it converts to utf8
         open(local_path, 'w').write(soup.prettify())
     return soup
 
 
+def get_foclóir_candidates(word):
+    for n in range(1, 18):
+        soup = get_definition_soup(word, 'foclóir', lang='ga', page_no=n)
+        result_lists = soup.find_all(class_='result-list')
+        if not result_lists:
+            if 'No matches found.' in soup.get_text():
+                return set()
+        if len(result_lists) != 1:
+            manual_debug()
+        candidates = set()
+        imprecise_match = False
+        lis = result_lists[0].find_all('li')
+        for result in lis:
+            if result.find(class_='lang_ga').string.strip() == word:
+                candidates.add(result.find(class_='lang_en').string.strip())
+            else:
+                imprecise_match = True
+        if imprecise_match or len(lis) < 20:
+            break
+    return candidates
+
+
 def get_teanglann_definition(word):
+
+    candidates = get_foclóir_candidates(word)
+    print(candidates)
+
     soup = get_definition_soup(word, 'teanglann', lang='ga')
     for entry in soup.find_all(class_='entry'):
 
@@ -208,10 +241,15 @@ def get_teanglann_definition(word):
             raw_text = clean_text(' '.join(subentry.stripped_strings), word)
             if len(transs) > 1:
                 print(f'{i}. [x{len(transs)}', raw_text + ']')
-            elif len(transs) == 1:
-                print(f'{i}.', clean_text(transs[0].get_text(), word), f'[', raw_text + ']')
-            else:
+            elif len(transs) < 1:
                 print(f'{i}. [' + raw_text + ']')
+            else:
+                trans_text = clean_text(transs[0].get_text(), word)
+                defn = '/'.join([tgw for tgw in re.split('[,;] *', trans_text) if tgw in candidates])
+                if defn:
+                    print(f'{i}.', defn, '[' + raw_text + ']')
+                else:
+                    print(f'{i}.', '[' + raw_text + ']')
 
 
 def clean_text(text, word):
@@ -219,7 +257,7 @@ def clean_text(text, word):
     text = text.replace('~', word)
     text = re.sub('[ ]{2,}', ' ', text).strip()  # repeated spaces
     text = text.rstrip('.')  # trailing dots
-    return text
+    return text.lower()
 
 
 def manual_debug():
