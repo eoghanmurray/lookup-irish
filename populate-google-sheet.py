@@ -75,7 +75,7 @@ def main():
                         valueInputOption='RAW',
                         body=body).execute()
                     print('{0} cells updated.'.format(result.get('updatedCells')))
-                count += 1
+                    count += 1
 
             if count == 5:
                 break
