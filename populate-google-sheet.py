@@ -164,7 +164,7 @@ def get_teanglann_definition(word):
             if abbr.next_sibling and abbr.next_sibling.string.lstrip().startswith('.'):
                 abbr.next_sibling.string.replace_with(abbr.next_sibling.string.lstrip()[1:])
 
-        if not entry.text.strip().startswith(word):
+        if not entry.text.strip().lower().startswith(word.lower()):
             manual_debug()
 
         split_point = None
