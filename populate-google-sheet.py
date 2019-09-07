@@ -9,6 +9,7 @@ import os
 from bs4 import BeautifulSoup
 import requests
 import re
+from collections import OrderedDict
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -168,60 +169,7 @@ def get_teanglann_definition(word):
         if not entry.text.strip().lower().startswith(word.lower()):
             manual_debug()
 
-        split_point = None
-        type_ = gender = None
-        if entry.find(title="feminine") or entry.find(title="masculine"):
-            soup_fb = get_definition_soup(word, 'teanglann', lang='ga-fb')
-            entry_fb = soup_fb.find(class_='entry')
-            type_ = 'Noun'
-            if entry.find(title="feminine"):
-                gender = 'nf'
-                k_lookup = 'bain'
-                split_point = entry.find(title="feminine")
-            elif entry.find(title="masculine"):
-                gender = 'nm'
-                k_lookup = 'fir'
-                split_point = entry.find(title="masculine")
-            if entry_fb:
-                noun_decs = entry_fb.find_all(
-                    string=re.compile(k_lookup + '[1-4]')
-                )
-                declensions = set()
-                for noun_dec in noun_decs:
-                    declensions.add(noun_dec.string.strip()[-1])
-                if len(declensions) > 1:
-                    manual_debug()
-                elif declensions:
-                    gender += declensions.pop()
-        elif entry.find(title="adjective"):
-            type_ = 'Adjective'
-            gender = 'a'
-            dec = entry.find(title="adjective").next_sibling
-            # to check: think it only goes up to a3
-            if dec.strip().strip('.') in ['1', '2', '3', '4']:
-                gender += dec.strip().strip('.')
-            else:
-                manual_debug()
-            split_point = entry.find(title="adjective")
-        elif (entry.find(title="transitive verb") and
-              entry.find(title="and intransitive")):
-            type_ = 'Verb - Transitive & Intransitive'
-        elif entry.find(title="transitive verb"):
-            type_ = 'Verb - Transitive'
-        elif entry.find(title="conjunction"):
-            type_ = 'Conjugation'
-
         subentries = [soup.new_tag('div')]
-        if split_point:
-            split_point_top = split_point
-            while split_point_top.parent != entry:
-                split_point_top = split_point_top.parent
-            prev_sibs = [ps for ps in
-                         split_point_top.previous_siblings]  # copy
-            for preamble in reversed(prev_sibs):
-                subentries[0].append(preamble)
-            split_point.extract()
-
         n = 1
         for node in entry.contents[:]:
             if hasattr(node, 'get_text'):
@@ -239,8 +187,53 @@ def get_teanglann_definition(word):
             else:
                 subentries[-1].append(node)
 
+        first_line = subentries[0]
+        gender = None
+        types = OrderedDict()  # using as ordered set
+        if first_line.find(title="feminine") or first_line.find(title="masculine"):
+            soup_fb = get_definition_soup(word, 'teanglann', lang='ga-fb')
+            entry_fb = soup_fb.find(class_='entry')
+            types['Noun'] = True
+            if first_line.find(title="feminine"):
+                gender = 'nf'
+                k_lookup = 'bain'
+            elif first_line.find(title="masculine"):
+                gender = 'nm'
+                k_lookup = 'fir'
+            if entry_fb:
+                noun_decs = entry_fb.find_all(
+                    string=re.compile(k_lookup + '[1-4]')
+                )
+                declensions = set()
+                for noun_dec in noun_decs:
+                    declensions.add(noun_dec.string.strip()[-1])
+                if len(declensions) > 1:
+                    manual_debug()
+                elif declensions:
+                    gender += declensions.pop()
+        if first_line.find(title="adverb"):
+            types['Adverb'] = True
+        if first_line.find(title="preposition"):
+            types['Preposition'] = True
+        if first_line.find(title="adjective"):
+            types['Adjective'] = True
+            gender = 'a'
+            dec = first_line.find(title="adjective").next_sibling
+            # to check: think it only goes up to a3
+            if dec.strip().strip('.') in ['1', '2', '3', '4']:
+                gender += dec.strip().strip('.')
+            elif dec.strip():
+                manual_debug()
+        if (first_line.find(title="transitive verb") and
+              first_line.find(title="and intransitive")):
+            types['Verb - Transitive & Intransitive'] = True
+        elif first_line.find(title="transitive verb"):
+            types['Verb - Transitive'] = True
+        elif first_line.find(title="conjunction"):
+            types['Conjugation'] = True
+
         print()
-        print(word, type_, gender)
+        print(word, ' & '.join(types.keys()), gender)
         for i, subentry in enumerate(subentries):
             transs = subentry.find_all(class_='trans')
             raw_text = clean_text(' '.join(subentry.stripped_strings), word)
@@ -251,7 +244,7 @@ def get_teanglann_definition(word):
             else:
                 trans_text = clean_text(transs[0].get_text(), word)
                 maybe_to = ''
-                if type_ and type_.startswith('Verb'):
+                if types and ' & '.join(types.keys()).startswith('Verb'):
                     maybe_to = 'to '
                 defn = '/'.join([tgw for tgw in re.split('[,;] *', trans_text) if tgw in candidates])
                 if defn:
@@ -259,8 +252,9 @@ def get_teanglann_definition(word):
                     definitions.append(maybe_to + defn)
                 else:
                     print(f'{i}.', '[' + raw_text + ']')
-        if type_ and type_ not in parts_of_speech:
-            parts_of_speech.append(type_)
+        for type_ in types:
+            if type_ not in parts_of_speech:
+                parts_of_speech.append(type_)
         if gender and gender not in genders:
             genders.append(gender)
     return ' & '.join(parts_of_speech), '\n'.join(definitions), '\n'.join(genders)
@@ -283,6 +277,9 @@ def manual_debug():
 if __name__ == '__main__':
     if True:
         main()
+    elif False:
+        # adverb/preposition/adverb in a single entry
+        get_teanglann_definition('anall')
     elif False:
         # testing male/female:
         get_teanglann_definition('dóid')
