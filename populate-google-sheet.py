@@ -22,7 +22,7 @@ SAMPLE_SPREADSHEET_ID = '1kiZlZp8weyILstvtL0PfIQkQGzuG7oZfP8n_qkMFAWo'
 SAMPLE_RANGE_NAME = '6450-most-frequent-irish-words!B2:E'
 
 
-def main():
+def get_sheet():
     """Shows basic usage of the Sheets API.
     Prints values from a sample spreadsheet.
     """
@@ -52,11 +52,14 @@ def main():
     result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
                                 range=SAMPLE_RANGE_NAME).execute()
     values = result.get('values', [])
-
     if not values:
         print('No data found.')
-    else:
-        print('GA, EN:')
+    return values
+
+
+def populate_empty():
+    values = get_sheet()
+    if values:
         count = 0
         for n, row in enumerate(values):
             cell_no = n + 2  # 1 for 0 index, 1 for range offset
@@ -79,6 +82,32 @@ def main():
                         valueInputOption='RAW',
                         body=body).execute()
                     print('{0} cells updated.'.format(result.get('updatedCells')))
+                    count += 1
+
+            if count == 5:
+                break
+
+
+def compare_existing():
+    values = get_sheet()
+    if values:
+        count = 0
+        from io import StringIO
+        for n, row in enumerate(values):
+            cell_no = n + 2  # 1 for 0 index, 1 for range offset
+            if n > 10 and n % 100 == 1:
+                orig = sys.stdout
+                sys.stdout = StringIO()
+                PoS, EN, Gender = get_teanglann_definition(row[0])
+                captured = sys.stdout
+                sys.stdout = orig
+                if EN != row[2]:
+                    print()
+                    print(row[0])
+                    print(row[2])
+                    print(' vs.')
+                    print(EN)
+                    #print(captured.read())  # not working
                     count += 1
 
             if count == 5:
@@ -310,8 +339,8 @@ def manual_debug():
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         get_teanglann_definition(sys.argv[-1])
-    elif False:
-        main()
+    elif True:
+        compare_existing()
     elif False:
         # adverb/preposition/adverb in a single entry
         get_teanglann_definition('anall')
