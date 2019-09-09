@@ -316,7 +316,13 @@ def get_teanglann_definition(word):
                     print(f'{label}{maybe_to}{defn}[{raw_text}]')
                     definitions.append(maybe_to + defn)
                 else:
-                    print(f'{label}[{raw_text}]')
+                    defn = '/'.join([fcw for fcw in candidates if fcw in raw_text])
+                    if False and defn:
+                        # this picks up 'persist' instead of 'persisting/persistent' for 'leanúnach'
+                        print(f'{label}{maybe_to}{defn}[{raw_text}]')
+                        definitions.append(maybe_to + defn)
+                    else:
+                        print(f'{label}[{raw_text}]')
         if gender and gender not in genders:
             genders.append(gender)
         for k, v in types.items():
