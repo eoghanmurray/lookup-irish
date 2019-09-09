@@ -313,7 +313,7 @@ def get_teanglann_definition(word):
         for subentry in subentries:
             raw_text = clean_text(' '.join(subentry.stripped_strings), word)
             if  raw_text.startswith('verbal noun') and ' of ' in raw_text:
-                types['Verbal Noun'] = ' of ' + raw_text.split(' of ', 1)[1].strip()
+                types['Verbal Noun'] = ' of ' + raw_text.split(' of ', 1)[1].strip().rstrip(' 123456789')
 
         print()
         print(word, print_types(types), gender)
