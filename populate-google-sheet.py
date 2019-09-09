@@ -123,6 +123,7 @@ def get_definition_soup(word, dictionary, lang='ga', page_no=1):
 
 
 def get_foclóir_candidates(word):
+    candidates = set()
     for n in range(1, 18):
         soup = get_definition_soup(word, 'foclóir', lang='ga', page_no=n)
         result_lists = soup.find_all(class_='result-list')
@@ -131,7 +132,6 @@ def get_foclóir_candidates(word):
                 return set()
         if len(result_lists) != 1:
             manual_debug()
-        candidates = set()
         imprecise_match = False
         lis = result_lists[0].find_all('li')
         for result in lis:
