@@ -83,7 +83,9 @@ def main():
 
 
 def get_definition_soup(word, dictionary, lang='ga', page_no=1):
-    headers = {}
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/76.0.3809.100 Chrome/76.0.3809.100 Safari/537.36'
+    }
     if dictionary == 'teanglann':
         href = 'https://www.teanglann.ie'
         if lang == 'ga':
@@ -92,9 +94,6 @@ def get_definition_soup(word, dictionary, lang='ga', page_no=1):
             # a separate dictionary rather than a separate language
             href += '/en/fb/' + word
     elif dictionary == 'foclóir':
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/76.0.3809.100 Chrome/76.0.3809.100 Safari/537.36'
-        }
         href = 'https://www.focloir.ie'
         if lang == 'en':
             href += '/en/dictionary/ei/' + word
