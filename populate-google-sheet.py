@@ -146,7 +146,7 @@ def get_foclóir_candidates(word):
 def get_teanglann_definition(word):
 
     candidates = get_foclóir_candidates(word)
-    print(candidates)
+    print(word, 'folóir:', candidates)
 
     soup = get_definition_soup(word, 'teanglann', lang='ga')
     parts_of_speech = []
