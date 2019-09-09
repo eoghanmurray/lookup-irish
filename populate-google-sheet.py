@@ -169,7 +169,10 @@ def get_teanglann_definition(word):
             manual_debug()
 
         subentries = [soup.new_tag('div')]
+        subentry_labels = ['head']
         n = 1
+        nxs = 'abcdefghijklmnopqrstuvwxyz'
+        nxi = 0
         for node in entry.contents[:]:
             if hasattr(node, 'get_text'):
                 node_text = node.get_text()
@@ -180,9 +183,30 @@ def get_teanglann_definition(word):
                 if pre.strip():
                     subentries[-1].append(pre.strip())
                 subentries.append(soup.new_tag('div'))
+                subentry_labels.append(f'{n}.')
+                nxi = 0
                 if post.strip():
                     subentries[-1].append(post.strip())
                 n += 1
+            elif (len(subentries) > 1  # we've actually got at least a '1.' already
+                   and (
+                       f'({nxs[nxi]})' in node_text
+                       or (
+                           f'{nxs[nxi]}' == node_text.strip() and
+                           node.next_sibling.string.strip() == ')' and
+                           subentries[-1].get_text().strip().endswith('(')
+                       ))):
+                pre, post = node_text.split(f'{nxs[nxi]}', 1)
+                if pre.strip().rstrip('('):
+                    subentries[-1].append(pre.strip())
+                if subentries[-1].get_text().strip().rstrip('('):
+                    subentries.append(soup.new_tag('div'))
+                    subentry_labels.append(f'{n-1}.({nxs[nxi]})')
+                else:
+                    subentry_labels[-1] = f'{n-1}.({nxs[nxi]})'
+                if post.strip().lstrip(')'):
+                    subentries[-1].append(post.strip())
+                nxi += 1
             else:
                 subentries[-1].append(node)
 
@@ -238,13 +262,13 @@ def get_teanglann_definition(word):
 
         print()
         print(word, ' & '.join(types.keys()), gender)
-        for i, subentry in enumerate(subentries):
+        for label, subentry in zip(subentry_labels, subentries):
             transs = subentry.find_all(class_='trans')
             raw_text = clean_text(' '.join(subentry.stripped_strings), word)
             if len(transs) > 1:
-                print(f'{i}. [x{len(transs)}', raw_text + ']')
+                print(f'{label} [x{len(transs)}', raw_text + ']')
             elif len(transs) < 1:
-                print(f'{i}. [' + raw_text + ']')
+                print(f'{label} [' + raw_text + ']')
             else:
                 trans_text = clean_text(transs[0].get_text(), word)
                 maybe_to = ''
@@ -252,10 +276,10 @@ def get_teanglann_definition(word):
                     maybe_to = 'to '
                 defn = '/'.join([tgw for tgw in re.split('[,;] *', trans_text) if tgw in candidates])
                 if defn:
-                    print(f'{i}.', maybe_to + defn, '[' + raw_text + ']')
+                    print(f'{label}', maybe_to + defn, '[' + raw_text + ']')
                     definitions.append(maybe_to + defn)
                 else:
-                    print(f'{i}.', '[' + raw_text + ']')
+                    print(f'{label}', '[' + raw_text + ']')
         for type_ in types:
             if type_ not in parts_of_speech:
                 if types[type_] is True:
@@ -271,7 +295,7 @@ def clean_text(text, word):
     text = text.replace('~', word)
     text = re.sub('[ ]{2,}', ' ', text).strip()  # repeated spaces
     text = text.rstrip('.')  # trailing dots
-    return text.lower()
+    return text.lower().lstrip(')').rstrip('(')
 
 
 def manual_debug():
@@ -306,4 +330,5 @@ if __name__ == '__main__':
         get_teanglann_definition('bothán')
     else:
         # get a verbal noun
+        # also an example with 5.(a), 5.(b) etc.
         get_teanglann_definition('imeacht')
