@@ -203,7 +203,7 @@ def get_teanglann_definition(word):
             manual_debug()
 
         subentries = [soup.new_tag('div')]
-        subentry_labels = ['head']
+        subentry_labels = ['']  # first line, may contain a 'main' entry
         n = 1
         nxs = 'abcdefghijklmnopqrstuvwxyz'
         nxi = 0
@@ -217,7 +217,7 @@ def get_teanglann_definition(word):
                 if pre.strip():
                     subentries[-1].append(pre.strip())
                 subentries.append(soup.new_tag('div'))
-                subentry_labels.append(f'{n}.')
+                subentry_labels.append(f'{n}. ')
                 nxi = 0
                 if post.strip():
                     subentries[-1].append(post.strip())
@@ -235,9 +235,9 @@ def get_teanglann_definition(word):
                     subentries[-1].append(pre.strip())
                 if subentries[-1].get_text().strip().rstrip('('):
                     subentries.append(soup.new_tag('div'))
-                    subentry_labels.append(f'{n-1}.({nxs[nxi]})')
+                    subentry_labels.append(f'{n-1}.({nxs[nxi]}) ')
                 else:
-                    subentry_labels[-1] = f'{n-1}.({nxs[nxi]})'
+                    subentry_labels[-1] = f'{n-1}.({nxs[nxi]}) '
                 if post.strip().lstrip(')'):
                     subentries[-1].append(post.strip())
                 nxi += 1
@@ -300,7 +300,7 @@ def get_teanglann_definition(word):
             transs = subentry.find_all(class_='trans')
             raw_text = clean_text(' '.join(subentry.stripped_strings), word)
             if len(transs) < 1:
-                print(f'{label} [' + raw_text + ']')
+                print(f'{label}[{raw_text}]')
             else:
                 trans_text = clean_text(transs[0].get_text(), word)
                 maybe_to = ''
@@ -308,12 +308,12 @@ def get_teanglann_definition(word):
                     maybe_to = 'to '
                 defn = '/'.join([tgw for tgw in re.split('[,;] *', trans_text) if tgw in candidates])
                 if len(transs) > 1:
-                    raw_text = f'X{len(transs)} ' + raw_text
+                    raw_text = f'X{len(transs)} {raw_text}'
                 if defn:
-                    print(f'{label}', maybe_to + defn, '[' + raw_text + ']')
+                    print(f'{label}{maybe_to}{defn}[{raw_text}]')
                     definitions.append(maybe_to + defn)
                 else:
-                    print(f'{label}', '[' + raw_text + ']')
+                    print(f'{label}[{raw_text}]')
         for type_ in types:
             if type_ not in parts_of_speech:
                 if types[type_] is True:
