@@ -11,6 +11,8 @@ import requests
 import re
 from collections import OrderedDict
 import codecs
+import sys
+
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -179,8 +181,8 @@ def get_teanglann_definition(word):
                 node_text = node.get_text()
             else:
                 node_text = node.string
-            if f'{n}.' in node_text:
-                pre, post = node_text.split(f'{n}.', 1)
+            if f'{n}.' in node_text.replace(f'adjective{1}.', ''):
+                pre, post = node_text.rsplit(f'{n}.', 1)
                 if pre.strip():
                     subentries[-1].append(pre.strip())
                 subentries.append(soup.new_tag('div'))
@@ -300,14 +302,15 @@ def clean_text(text, word):
 
 
 def manual_debug():
-    import sys
     import pdb
     p = pdb.Pdb()
     p.set_trace(sys._getframe().f_back)
 
 
 if __name__ == '__main__':
-    if True:
+    if len(sys.argv) > 1:
+        get_teanglann_definition(sys.argv[-1])
+    elif False:
         main()
     elif False:
         # adverb/preposition/adverb in a single entry
@@ -329,8 +332,11 @@ if __name__ == '__main__':
     elif False:
         # has a non-translated '1. Dim. of BOTH.' in output
         get_teanglann_definition('bothán')
-    else:
+    elif False:
         # get a verbal noun
         # also an example with 5.(a), 5.(b) etc.
         # also an example with multiple class="trans" in 6.
         get_teanglann_definition('imeacht')
+    else:
+        # was not getting a1 -> adjective here
+        get_teanglann_definition('leanúnach')
