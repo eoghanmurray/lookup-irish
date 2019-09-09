@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 import requests
 import re
 from collections import OrderedDict
+import codecs
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -111,13 +112,13 @@ def get_definition_soup(word, dictionary, lang='ga', page_no=1):
     if not os.path.exists(local_dir):
         os.makedirs(local_dir)
     if os.path.exists(local_path):
-        contents = open(local_path, 'r').read()
+        contents = codecs.open(local_path, 'r', encoding='utf8').read()
         soup = BeautifulSoup(contents, features='html5lib')
     else:
         page = requests.get(href, headers=headers)
         soup = BeautifulSoup(page.text, features='html5lib')
         # writing the soup rather than raw response as it converts to utf8
-        open(local_path, 'w', encoding='utf-8').write(soup.prettify())
+        codecs.open(local_path, 'w', encoding='utf-8').write(str(soup))
     return soup
 
 
