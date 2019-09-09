@@ -212,15 +212,27 @@ def get_teanglann_definition(word):
                 node_text = node.get_text()
             else:
                 node_text = node.string
-            if f'{n}.' in node_text.replace(f'adjective{1}.', ''):
-                pre, post = node_text.rsplit(f'{n}.', 1)
-                if pre.strip():
-                    subentries[-1].append(pre.strip())
+            if f'{n}.' in re.sub(f'adjective\s*{1}.', '', node_text):
+                as_subnode = node.find(text=re.compile(f'\s+{n}.\s+'))
+                if as_subnode:
+                    rev = []
+                    for r in as_subnode.previous_siblings:
+                        rev.append(r)
+                    for r in reversed(rev):
+                        subentries[-1].append(r)
+                else:
+                    pre, post = node_text.rsplit(f'{n}.', 1)
+                    if pre.strip():
+                        subentries[-1].append(pre.strip())
                 subentries.append(soup.new_tag('div'))
                 subentry_labels.append(f'{n}. ')
                 nxi = 0
-                if post.strip():
-                    subentries[-1].append(post.strip())
+                if as_subnode:
+                    for r in as_subnode.next_siblings:
+                        subentries[-1].append(r)
+                else:
+                    if post.strip():
+                        subentries[-1].append(post.strip())
                 n += 1
             elif (len(subentries) > 1  # we've actually got at least a '1.' already
                    and (
@@ -276,8 +288,10 @@ def get_teanglann_definition(word):
             types['Adjective'] = True
             gender = 'a'
             dec = first_line.find(title="adjective").next_sibling
+            if not dec:
+                manual_debug()
             # to check: think it only goes up to a3
-            if dec.strip().strip('.') in ['1', '2', '3', '4']:
+            if dec and dec.strip().strip('.') in ['1', '2', '3', '4']:
                 gender += dec.strip().strip('.')
             elif dec.strip():
                 manual_debug()
@@ -369,6 +383,9 @@ if __name__ == '__main__':
     elif False:
         # adverb/preposition/adverb in a single entry
         get_teanglann_definition('anall')
+    elif False:
+        # make sure to pick up the 'Adjective'
+        get_teanglann_definition('buan')
     elif False:
         # testing male/female:
         get_teanglann_definition('dóid')
