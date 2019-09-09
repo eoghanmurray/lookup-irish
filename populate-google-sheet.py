@@ -117,7 +117,7 @@ def get_definition_soup(word, dictionary, lang='ga', page_no=1):
         page = requests.get(href, headers=headers)
         soup = BeautifulSoup(page.text, features='html5lib')
         # writing the soup rather than raw response as it converts to utf8
-        open(local_path, 'w').write(soup.prettify())
+        open(local_path, 'w', encoding='utf-8').write(soup.prettify())
     return soup
 
 

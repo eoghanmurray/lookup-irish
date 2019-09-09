@@ -14,7 +14,6 @@ httplib2==0.13.1
 idna==2.8
 mccabe==0.6.1
 oauthlib==3.1.0
-pkg-resources==0.0.0
 pyasn1==0.4.7
 pyasn1-modules==0.2.6
 pycodestyle==2.5.0
