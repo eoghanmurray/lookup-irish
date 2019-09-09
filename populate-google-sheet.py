@@ -170,7 +170,9 @@ def get_foclóir_candidates(word):
         for result in lis:
             if result.find(class_='lang_ga').string.strip() == word:
                 candidates.add(result.find(class_='lang_en').string.strip())
-            else:
+            elif word in result.find(class_='lang_ga').string:
+                # a multi-word version
+                # so for 'cead' we stop on 'cead scoir', but not on 'céad' (fada)
                 imprecise_match = True
         if imprecise_match or len(lis) < 20:
             break
@@ -180,7 +182,7 @@ def get_foclóir_candidates(word):
 def get_teanglann_definition(word):
 
     candidates = get_foclóir_candidates(word)
-    print(word, 'folóir:', candidates)
+    print(word, 'foclóir:', candidates)
 
     soup = get_definition_soup(word, 'teanglann', lang='ga')
     parts_of_speech = OrderedDict()
@@ -408,6 +410,9 @@ if __name__ == '__main__':
         # also an example with 5.(a), 5.(b) etc.
         # also an example with multiple class="trans" in 6.
         get_teanglann_definition('imeacht')
+    elif False:
+        # get more than 1 page of results (check if 'permission' is there)
+        get_teanglann_definition('cead')
     elif False:
         # was not getting a1 -> adjective here
         get_teanglann_definition('leanúnach')
