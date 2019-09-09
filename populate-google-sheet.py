@@ -137,9 +137,11 @@ def get_definition_soup(word, dictionary, lang='ga', page_no=1):
         dictionary + '-' + lang
     )
     if page_no != 1:
-        local_path = os.path.join(local_dir, f'{word}-{page_no}.html')
+        filename = f'{word}-{page_no}.html'
     else:
-        local_path = os.path.join(local_dir, word + '.html')
+        filename = f'{word}.html'
+    filename = filename.replace('/', '_')
+    local_path = os.path.join(local_dir, filename)
     if not os.path.exists(local_dir):
         os.makedirs(local_dir)
     if os.path.exists(local_path):
