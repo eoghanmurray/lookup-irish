@@ -307,6 +307,8 @@ def get_teanglann_definition(word):
             types['Verb']['Intransitive'] = True
         if first_line.find(title="conjunction"):
             types['Conjugation'] = True
+        if first_line.find(title="prefix"):
+            types['Prefix'] = True
 
         for subentry in subentries:
             raw_text = clean_text(' '.join(subentry.stripped_strings), word)
