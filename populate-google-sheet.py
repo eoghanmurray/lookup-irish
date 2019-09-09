@@ -346,7 +346,7 @@ def print_types(type_dict):
         else:
             bit = type_ + val
         bits.append(bit)
-    return ' & '.join(bits)
+    return ', '.join(bits[:-2] + [' & '.join(bits[-2:])])
 
 
 def manual_debug():
