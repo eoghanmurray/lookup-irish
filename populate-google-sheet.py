@@ -381,7 +381,10 @@ def manual_debug():
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        get_teanglann_definition(sys.argv[-1])
+        res = get_teanglann_definition(sys.argv[-1])
+        print()
+        print(res[0], res[2])
+        print(res[1])
     elif True:
         compare_existing()
     elif False:
