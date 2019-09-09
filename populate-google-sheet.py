@@ -183,7 +183,7 @@ def get_teanglann_definition(word):
     print(word, 'folóir:', candidates)
 
     soup = get_definition_soup(word, 'teanglann', lang='ga')
-    parts_of_speech = []
+    parts_of_speech = OrderedDict()
     definitions = []
     genders = []
     for entry in soup.find_all(class_='entry'):
@@ -281,12 +281,15 @@ def get_teanglann_definition(word):
                 gender += dec.strip().strip('.')
             elif dec.strip():
                 manual_debug()
-        if (first_line.find(title="transitive verb") and
-              first_line.find(title="and intransitive")):
-            types['Verb - Transitive & Intransitive'] = True
-        elif first_line.find(title="transitive verb"):
-            types['Verb - Transitive'] = True
-        elif first_line.find(title="conjunction"):
+        if first_line.find(title="transitive verb"):
+            if 'Verb' not in types:
+                types['Verb'] = OrderedDict()
+            types['Verb']['Transitive'] = True
+        if first_line.find(title="intransitive verb") or first_line.find(title="and intransitive"):
+            if 'Verb' not in types:
+                types['Verb'] = OrderedDict()
+            types['Verb']['Intransitive'] = True
+        if first_line.find(title="conjunction"):
             types['Conjugation'] = True
 
         for subentry in subentries:
@@ -295,7 +298,7 @@ def get_teanglann_definition(word):
                 types['Verbal Noun'] = ' of ' + raw_text.split(' of ', 1)[1].strip()
 
         print()
-        print(word, ' & '.join(types.keys()), gender)
+        print(word, print_types(types), gender)
         for label, subentry in zip(subentry_labels, subentries):
             transs = subentry.find_all(class_='trans')
             raw_text = clean_text(' '.join(subentry.stripped_strings), word)
@@ -304,7 +307,7 @@ def get_teanglann_definition(word):
             else:
                 trans_text = clean_text(transs[0].get_text(), word)
                 maybe_to = ''
-                if types and ' & '.join(types.keys()).startswith('Verb'):
+                if 'Verb' in types:
                     maybe_to = 'to '
                 defn = '/'.join([tgw for tgw in re.split('[,;] *', trans_text) if tgw in candidates])
                 if len(transs) > 1:
@@ -314,15 +317,14 @@ def get_teanglann_definition(word):
                     definitions.append(maybe_to + defn)
                 else:
                     print(f'{label}[{raw_text}]')
-        for type_ in types:
-            if type_ not in parts_of_speech:
-                if types[type_] is True:
-                    parts_of_speech.append(type_)
-                else:
-                    parts_of_speech.append(type_ + types[type_])
         if gender and gender not in genders:
             genders.append(gender)
-    return ' & '.join(parts_of_speech), '\n'.join(definitions), '\n'.join(genders)
+        for k, v in types.items():
+            if isinstance(v, dict) and k in parts_of_speech:
+                parts_of_speech[k].update(v)
+            else:
+                parts_of_speech[k] = v
+    return print_types(parts_of_speech), '\n'.join(definitions), '\n'.join(genders)
 
 def clean_text(text, word):
     text = text.replace('\n', '')
@@ -330,6 +332,21 @@ def clean_text(text, word):
     text = re.sub('[ ]{2,}', ' ', text).strip()  # repeated spaces
     text = text.rstrip('.')  # trailing dots
     return text.lower().lstrip(')').rstrip('(')
+
+
+def print_types(type_dict):
+    bits = []
+    for type_, val in type_dict.items():
+        if val is True:
+            bit = type_
+        elif isinstance(val, dict):
+            if not val:
+                continue  # wouldn't be necessary with an OrderedDefaultDict
+            bit = type_ + ' - ' + ' & '.join(val.keys())
+        else:
+            bit = type_ + val
+        bits.append(bit)
+    return ' & '.join(bits)
 
 
 def manual_debug():
@@ -371,6 +388,10 @@ if __name__ == '__main__':
     elif False:
         # was not getting a1 -> adjective here
         get_teanglann_definition('leanúnach')
+    elif False:
+        # verb intransitive + transitive, with extra entry with intransitive verb only
+        # expecting to get 'Verb - Transitive & Intransitive' back
+        print(get_teanglann_definition('lonnaigh')[0])
     else:
         # not getting 'cream'
         get_teanglann_definition('uachtar')
