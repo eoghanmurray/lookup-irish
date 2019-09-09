@@ -337,6 +337,9 @@ if __name__ == '__main__':
         # also an example with 5.(a), 5.(b) etc.
         # also an example with multiple class="trans" in 6.
         get_teanglann_definition('imeacht')
-    else:
+    elif False:
         # was not getting a1 -> adjective here
         get_teanglann_definition('leanúnach')
+    else:
+        # not getting 'cream'
+        get_teanglann_definition('uachtar')
