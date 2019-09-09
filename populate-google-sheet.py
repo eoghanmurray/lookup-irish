@@ -265,9 +265,7 @@ def get_teanglann_definition(word):
         for label, subentry in zip(subentry_labels, subentries):
             transs = subentry.find_all(class_='trans')
             raw_text = clean_text(' '.join(subentry.stripped_strings), word)
-            if len(transs) > 1:
-                print(f'{label} [x{len(transs)}', raw_text + ']')
-            elif len(transs) < 1:
+            if len(transs) < 1:
                 print(f'{label} [' + raw_text + ']')
             else:
                 trans_text = clean_text(transs[0].get_text(), word)
@@ -275,6 +273,8 @@ def get_teanglann_definition(word):
                 if types and ' & '.join(types.keys()).startswith('Verb'):
                     maybe_to = 'to '
                 defn = '/'.join([tgw for tgw in re.split('[,;] *', trans_text) if tgw in candidates])
+                if len(transs) > 1:
+                    raw_text = f'X{len(transs)} ' + raw_text
                 if defn:
                     print(f'{label}', maybe_to + defn, '[' + raw_text + ']')
                     definitions.append(maybe_to + defn)
@@ -331,4 +331,5 @@ if __name__ == '__main__':
     else:
         # get a verbal noun
         # also an example with 5.(a), 5.(b) etc.
+        # also an example with multiple class="trans" in 6.
         get_teanglann_definition('imeacht')
