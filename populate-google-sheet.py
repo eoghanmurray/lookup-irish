@@ -231,6 +231,11 @@ def get_teanglann_definition(word):
         elif first_line.find(title="conjunction"):
             types['Conjugation'] = True
 
+        for subentry in subentries:
+            raw_text = clean_text(' '.join(subentry.stripped_strings), word)
+            if  raw_text.startswith('verbal noun') and ' of ' in raw_text:
+                types['Verbal Noun'] = ' of ' + raw_text.split(' of ', 1)[1].strip()
+
         print()
         print(word, ' & '.join(types.keys()), gender)
         for i, subentry in enumerate(subentries):
@@ -253,7 +258,10 @@ def get_teanglann_definition(word):
                     print(f'{i}.', '[' + raw_text + ']')
         for type_ in types:
             if type_ not in parts_of_speech:
-                parts_of_speech.append(type_)
+                if types[type_] is True:
+                    parts_of_speech.append(type_)
+                else:
+                    parts_of_speech.append(type_ + types[type_])
         if gender and gender not in genders:
             genders.append(gender)
     return ' & '.join(parts_of_speech), '\n'.join(definitions), '\n'.join(genders)
@@ -293,6 +301,9 @@ if __name__ == '__main__':
         # some monsters of definitions including verb & noun
         get_teanglann_definition('dóigh')
         get_teanglann_definition('súil')
-    elif True:
+    elif False:
         # has a non-translated '1. Dim. of BOTH.' in output
         get_teanglann_definition('bothán')
+    else:
+        # get a verbal noun
+        get_teanglann_definition('imeacht')
