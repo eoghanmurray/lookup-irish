@@ -9,7 +9,7 @@ import os
 from bs4 import BeautifulSoup
 import requests
 import re
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 import codecs
 import sys
 
@@ -18,9 +18,11 @@ import sys
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # The ID and range of a sample spreadsheet.
-SAMPLE_SPREADSHEET_ID = '1kiZlZp8weyILstvtL0PfIQkQGzuG7oZfP8n_qkMFAWo'
-SAMPLE_RANGE_NAME = '6450-most-frequent-irish-words!B2:E'
+SPREADSHEET_ID = '1kiZlZp8weyILstvtL0PfIQkQGzuG7oZfP8n_qkMFAWo'
+RANGE = '6450-most-frequent-irish-words!A1:E'
 
+FIRST_ROW_SIG = 'AUTO GA PoS EN Gender Tags'
+RowTup = namedtuple('RowTup', FIRST_ROW_SIG)
 
 def get_sheet():
     """Shows basic usage of the Sheets API.
@@ -49,12 +51,14 @@ def get_sheet():
 
     # Call the Sheets API
     sheet = service.spreadsheets()
-    result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
-                                range=SAMPLE_RANGE_NAME).execute()
+    result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
+                                range=RANGE).execute()
     values = result.get('values', [])
     if not values:
-        print('No data found.')
-    return values
+        return False
+    assert ' '.join(values[0]) == FIRST_ROW_SIG
+    for v in values:
+        yield RowTup(*v)
 
 
 def populate_empty():
@@ -62,7 +66,9 @@ def populate_empty():
     if values:
         count = 0
         for n, row in enumerate(values):
-            cell_no = n + 2  # 1 for 0 index, 1 for range offset
+            cell_no = n + 1  # 1 for 0 index
+            # TODO: also re-update existing rows where row.EN.endswith('[AUTO]')
+            # TODO: if there's an existing manual EN definition, put the auto definition in the (new) first AUTO column
             if len(row) == 1:  # only GA column is defined
                 PoS, EN, Gender = get_teanglann_definition(row[0])
                 if EN:
@@ -77,7 +83,7 @@ def populate_empty():
                         'values': values,
                     }
                     result = sheet.values().update(
-                        spreadsheetId=SAMPLE_SPREADSHEET_ID,
+                        spreadsheetId=SPREADSHEET_ID,
                         range=f'C{cell_no}:E{cell_no}',
                         valueInputOption='RAW',
                         body=body).execute()
@@ -94,17 +100,17 @@ def compare_existing():
         count = 0
         from io import StringIO
         for n, row in enumerate(values):
-            cell_no = n + 2  # 1 for 0 index, 1 for range offset
+            cell_no = n + 1  # 1 for 0 index
             if n > 10 and n % 100 == 1:
                 orig = sys.stdout
                 sys.stdout = StringIO()
                 PoS, EN, Gender = get_teanglann_definition(row[0])
                 captured = sys.stdout
                 sys.stdout = orig
-                if EN != row[2]:
+                if EN != row.EN:
                     print()
-                    print(row[0])
-                    print(row[2])
+                    print(row.GA)
+                    print(row.EN)
                     print(' vs.')
                     print(EN)
                     #print(captured.read())  # not working
