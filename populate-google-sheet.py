@@ -335,8 +335,9 @@ def get_teanglann_definition(word):
                 if len(transs) > 1:
                     raw_text = f'X{len(transs)} {raw_text}'
                 if defn:
-                    print(f'{label}{maybe_to}{defn}[{raw_text}]')
-                    definitions.append(maybe_to + defn)
+                    if maybe_to + defn not in definitions:
+                        print(f'{label}{maybe_to}{defn}[{raw_text}]')
+                        definitions.append(maybe_to + defn)
                 else:
                     defn = '/'.join([fcw for fcw in candidates if fcw in raw_text])
                     if False and defn:
@@ -401,12 +402,18 @@ if __name__ == '__main__':
         # no adjective number defined in the main tab (TODO get from /fb/ tab)
         get_teanglann_definition('deas')
     elif False:
+        # should have only one line with 'article'
+        get_teanglann_definition('alt')
+    elif False:
         # testing male/female:
         get_teanglann_definition('dóid')
         get_teanglann_definition('dogma')
     elif False:
         # has entry pointing to DUGA
         get_teanglann_definition('doic')
+    elif False:
+        # don't have 2 lines both saying 'knight'
+        get_teanglann_definition('ridire')
     elif False:
         # no entry in fb (for noun declension)
         get_teanglann_definition('dóideog')
