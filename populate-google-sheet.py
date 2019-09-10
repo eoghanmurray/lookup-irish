@@ -185,15 +185,9 @@ def get_foclóir_candidates(word):
     return candidates
 
 
-def get_teanglann_definition(word):
-
-    candidates = get_foclóir_candidates(word)
-    print(word, 'foclóir:', candidates)
-
+def get_teanglann_subentries(word):
     soup = get_definition_soup(word, 'teanglann', lang='ga')
-    parts_of_speech = OrderedDict()
-    definitions = []
-    genders = []
+
     for entry in soup.find_all(class_='entry'):
 
         # expand abbreviations
@@ -263,7 +257,18 @@ def get_teanglann_definition(word):
                 nxi += 1
             else:
                 subentries[-1].append(node)
+        yield subentries, subentry_labels
 
+def get_teanglann_definition(word):
+
+    candidates = get_foclóir_candidates(word)
+    print(word, 'foclóir:', candidates)
+
+    parts_of_speech = OrderedDict()
+    definitions = []
+    genders = []
+
+    for subentries, subentry_labels in get_teanglann_subentries(word):
         first_line = subentries[0]
         gender = None
         types = OrderedDict()  # using as ordered set
