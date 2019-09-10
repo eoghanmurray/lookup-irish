@@ -278,6 +278,9 @@ def get_teanglann_definition(word):
                 gender = 'nm'
                 k_lookup = 'fir'
             if entry_fb:
+                for subentry in entry_fb.find_all(class_='subentry'):
+                    # https://www.teanglann.ie/en/fb/trumpa - ignore trumpadóir
+                    subentry.extract()
                 noun_decs = entry_fb.find_all(
                     string=re.compile(k_lookup + '[1-4]')
                 )
@@ -408,6 +411,9 @@ if __name__ == '__main__':
         # testing male/female:
         get_teanglann_definition('dóid')
         get_teanglann_definition('dogma')
+    elif False:
+        # should be nm4 not nm3 or multiple declensions:
+        get_teanglann_definition('trumpa')
     elif False:
         # has entry pointing to DUGA
         get_teanglann_definition('doic')
