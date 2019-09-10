@@ -12,6 +12,8 @@ import re
 from collections import OrderedDict, namedtuple
 import codecs
 import sys
+import time
+from random import randint
 
 
 # If modifying these scopes, delete the file token.pickle.
@@ -19,9 +21,13 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # The ID and range of a sample spreadsheet.
 SPREADSHEET_ID = '1kiZlZp8weyILstvtL0PfIQkQGzuG7oZfP8n_qkMFAWo'
-RANGE = '6450-most-frequent-irish-words!A1:E'
+RANGE = '6450-most-frequent-irish-words!A1:F'
 
 FIRST_ROW_SIG = 'AUTO GA PoS EN Gender Tags'
+COLUMN_KEY = {}
+alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+for col, letter in zip(FIRST_ROW_SIG.split(' '), alphabet):
+    COLUMN_KEY[col] = letter
 RowTup = namedtuple('RowTup', FIRST_ROW_SIG)
 
 def get_sheet():
@@ -51,6 +57,10 @@ def get_sheet():
 
     # Call the Sheets API
     sheet = service.spreadsheets()
+    return sheet
+
+
+def get_range(sheet):
     result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
                                 range=RANGE).execute()
     values = result.get('values', [])
@@ -58,19 +68,21 @@ def get_sheet():
         return False
     assert ' '.join(values[0]) == FIRST_ROW_SIG
     for v in values:
-        yield RowTup(*v)
+        v_ext = (v + [''] * 6)[:6]
+        yield RowTup(*v_ext)
 
 
 def populate_empty():
-    values = get_sheet()
-    if values:
+    sheet = get_sheet()
+    rows = get_range(sheet)
+    if rows:
         count = 0
-        for n, row in enumerate(values):
+        for n, row in enumerate(rows):
             cell_no = n + 1  # 1 for 0 index
             # TODO: also re-update existing rows where row.EN.endswith('[AUTO]')
             # TODO: if there's an existing manual EN definition, put the auto definition in the (new) first AUTO column
             if len(row) == 1:  # only GA column is defined
-                PoS, EN, Gender = get_teanglann_definition(row[0])
+                PoS, EN, Gender = get_teanglann_definition(row.GA)
                 if EN:
                     values = [
                         [
@@ -84,36 +96,10 @@ def populate_empty():
                     }
                     result = sheet.values().update(
                         spreadsheetId=SPREADSHEET_ID,
-                        range=f'C{cell_no}:E{cell_no}',
+                        range=f'{COLUMN_KEY["PoS"]}{cell_no}:COLUMN_KEY["Gender"]{cell_no}',
                         valueInputOption='RAW',
                         body=body).execute()
                     print('{0} cells updated.'.format(result.get('updatedCells')))
-                    count += 1
-
-            if count == 5:
-                break
-
-
-def compare_existing():
-    values = get_sheet()
-    if values:
-        count = 0
-        from io import StringIO
-        for n, row in enumerate(values):
-            cell_no = n + 1  # 1 for 0 index
-            if n > 10 and n % 100 == 1:
-                orig = sys.stdout
-                sys.stdout = StringIO()
-                PoS, EN, Gender = get_teanglann_definition(row[0])
-                captured = sys.stdout
-                sys.stdout = orig
-                if EN != row.EN:
-                    print()
-                    print(row.GA)
-                    print(row.EN)
-                    print(' vs.')
-                    print(EN)
-                    #print(captured.read())  # not working
                     count += 1
 
             if count == 5:
@@ -415,8 +401,6 @@ if __name__ == '__main__':
         print()
         print(res[0], res[2])
         print(res[1])
-    elif True:
-        compare_existing()
     elif False:
         # adverb/preposition/adverb in a single entry
         get_teanglann_definition('anall')
