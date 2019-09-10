@@ -290,8 +290,6 @@ def get_teanglann_definition(word):
             types['Adjective'] = True
             gender = 'a'
             dec = first_line.find(title="adjective").next_sibling
-            if not dec:
-                manual_debug()
             # to check: think it only goes up to a3
             if dec and dec.strip().strip('.') in ['1', '2', '3', '4']:
                 gender += dec.strip().strip('.')
@@ -393,6 +391,9 @@ if __name__ == '__main__':
     elif False:
         # make sure to pick up the 'Adjective'
         get_teanglann_definition('buan')
+    elif False:
+        # no adjective number defined in the main tab (TODO get from /fb/ tab)
+        get_teanglann_definition('deas')
     elif False:
         # testing male/female:
         get_teanglann_definition('dóid')
