@@ -339,6 +339,7 @@ def get_teanglann_definition(word):
                 gender += dec.strip().strip('.')
             elif dec.strip():
                 manual_debug()
+            # TODO: 'thar' spurious adj. in 'in references of <span title="adjective">a</span> general nature'
         if first_line.find(title="transitive verb"):
             if 'Verb' not in types:
                 types['Verb'] = OrderedDict()
