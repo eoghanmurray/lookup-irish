@@ -106,6 +106,53 @@ def populate_empty():
                 break
 
 
+def populate_AUTO_comparison(refresh=False):
+    """
+Populate the AUTO column to compare against existing manual entries
+    """
+    sheet = get_sheet()
+    rows = get_range(sheet)
+    if rows:
+        count = 0
+        from io import StringIO
+        for n, row in enumerate(rows):
+            cell_no = n + 1  # 1 for 0 index
+            if row.AUTO != '' and not refresh:
+                continue
+            if not row.EN:
+                continue
+            if n > 200:
+                #orig = sys.stdout
+                #sys.stdout = StringIO()
+                PoS, EN, Gender = get_teanglann_definition(row.GA)
+                #captured = sys.stdout
+                #sys.stdout = orig
+                if EN and EN != row.EN:
+                    if False:
+                        print()
+                        print(f'C{cell_no}:E{cell_no}')
+                        print(row.GA)
+                        print(row.EN)
+                        print(' vs.')
+                        print(EN)
+                        #print(captured.read())  # not working
+                    else:
+                        body = {
+                            'values': [[EN]],
+                        }
+                        result = sheet.values().update(
+                            spreadsheetId=SPREADSHEET_ID,
+                            range=f'{COLUMN_KEY["AUTO"]}{cell_no}',
+                            valueInputOption='RAW',
+                            body=body).execute()
+                        print('{0} cells updated.'.format(result.get('updatedCells')))
+                    count += 1
+                    time.sleep(randint(1, 10))
+
+            if count == 100:
+                break
+
+
 def get_definition_soup(word, dictionary, lang='ga', page_no=1):
     headers = {
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/76.0.3809.100 Chrome/76.0.3809.100 Safari/537.36'
@@ -401,6 +448,8 @@ if __name__ == '__main__':
         print()
         print(res[0], res[2])
         print(res[1])
+    elif True:
+        populate_AUTO_comparison()
     elif False:
         # adverb/preposition/adverb in a single entry
         get_teanglann_definition('anall')
