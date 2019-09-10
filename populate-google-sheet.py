@@ -325,7 +325,7 @@ def get_teanglann_definition(word):
                 maybe_to = ''
                 if 'Verb' in types:
                     maybe_to = 'to '
-                defn = '/'.join([tgw for tgw in re.split('[,;] *', trans_text) if tgw in candidates])
+                defn = '/'.join([tgw for tgw in re.split('[,;] *', trans_text) if re.sub('\s*\(.*?\)\s*', '', tgw) in candidates])
                 if len(transs) > 1:
                     raw_text = f'X{len(transs)} {raw_text}'
                 if defn:
@@ -419,6 +419,9 @@ if __name__ == '__main__':
     elif False:
         # get more than 1 page of results (check if 'permission' is there)
         get_teanglann_definition('cead')
+    elif False:
+        # '(formal) application' to match with 'application'
+        get_teanglann_definition('iarratas')
     elif False:
         # was not getting a1 -> adjective here
         get_teanglann_definition('leanúnach')
