@@ -408,7 +408,9 @@ def get_teanglann_definition(word):
 
 
 def bs4_get_text(node_or_string):
-    if hasattr(node_or_string, 'get_text'):
+    if node_or_string is None:
+        return ''
+    elif hasattr(node_or_string, 'get_text'):
         return node_or_string.get_text()
     else:
         return node_or_string.string
