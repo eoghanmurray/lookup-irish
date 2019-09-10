@@ -210,10 +210,7 @@ def get_teanglann_subentries(word):
         nxs = 'abcdefghijklmnopqrstuvwxyz'
         nxi = 0
         for node in entry.contents[:]:
-            if hasattr(node, 'get_text'):
-                node_text = node.get_text()
-            else:
-                node_text = node.string
+            node_text = bs4_get_text(node)
             if f'{n}.' in re.sub(f'adjective\s*{1}.', '', node_text):
                 as_subnode = node.find(text=re.compile(f'\s+{n}.\s+'))
                 if as_subnode:
@@ -331,6 +328,14 @@ def get_teanglann_definition(word):
         print(word, print_types(types), gender)
         for label, subentry in zip(subentry_labels, subentries):
             transs = subentry.find_all(class_='trans')
+            if len(transs) > 1 and (
+                    (bs4_get_text(transs[0]).lstrip().startswith('(') and
+                     bs4_get_text(transs[0]).rstrip().endswith(')'))
+                    or
+                    (bs4_get_text(transs[0].previous_sibling).rstrip().endswith('(') and
+                     bs4_get_text(transs[0].next_sibling).lstrip().startswith(')'))
+            ):
+                transs = transs[1:]
             raw_text = clean_text(' '.join(subentry.stripped_strings), word)
             if len(transs) < 1:
                 print(f'{label}[{raw_text}]')
@@ -362,6 +367,14 @@ def get_teanglann_definition(word):
             else:
                 parts_of_speech[k] = v
     return print_types(parts_of_speech), '\n'.join(definitions), '\n'.join(genders)
+
+
+def bs4_get_text(node_or_string):
+    if hasattr(node_or_string, 'get_text'):
+        return node_or_string.get_text()
+    else:
+        return node_or_string.string
+
 
 def clean_text(text, word):
     text = text.replace('\n', '')
@@ -419,6 +432,9 @@ if __name__ == '__main__':
     elif False:
         # should be nm4 not nm3 or multiple declensions:
         get_teanglann_definition('trumpa')
+    elif False:
+        # get back 'that'
+        get_teanglann_definition('siúd')
     elif False:
         # has entry pointing to DUGA
         get_teanglann_definition('doic')
