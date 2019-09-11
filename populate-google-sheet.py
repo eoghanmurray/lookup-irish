@@ -155,6 +155,28 @@ Populate the AUTO column to compare against existing manual entries
                 break
 
 
+def print_verbal_nouns(refresh=False):
+    """
+Maybe put these as a (smaller) second line below the GA on front of card
+    """
+    sheet = get_sheet()
+    rows = get_range(sheet)
+    if rows:
+        count = 0
+        from io import StringIO
+        for n, row in enumerate(rows):
+            cell_no = n + 1  # 1 for 0 index
+            if 'Verb' in row.PoS and 'ransitive' in row.PoS and ' ' not in row.GA:
+                vn = assign_verbal_noun(row.GA)
+                if not vn:
+                    print(f'  {row.GA} - ag {vn}')
+                else:
+                    print(f'{row.GA} - ag {vn}')
+                count += 1
+            if count == 300:
+                break
+
+
 def get_definition_soup(word, dictionary, lang='ga', page_no=1):
     global cum_sleep
     if cum_sleep:
@@ -298,6 +320,111 @@ def get_teanglann_subentries(word):
             else:
                 subentries[-1].append(node)
         yield subentries, subentry_labels
+
+
+def assign_verbal_noun(verb):
+    for subentries, subentry_labels in get_teanglann_subentries(verb):
+        first_line = subentries[0]
+        if first_line.find(title="transitive verb") or \
+           first_line.find(title="intransitive verb") or \
+           first_line.find(title="and intransitive"):
+            flt = bs4_get_text(first_line)
+            flt = re.sub('\s\s+', ' ', flt)  # dóigh: newlines
+            vn = None
+            if 'verbal noun ~' in flt:
+                vn = flt.split('verbal noun ~', 1)[1]
+                vn = vn.replace('feminine', '')  # pleanáil poor spacing
+                vn = vn.replace('masculine', '')  # ditto
+                vn = verb + vn
+            elif 'verbal noun -' in flt:
+                suffix = flt.split('verbal noun -', 1)[1]
+                suffix = re.split('[\s,);]', suffix.lstrip())[0]
+                if suffix[0] == suffix[1]:
+                    # coinnigh (vn. -nneáil)  -> coinneáil
+                    vn = verb[:verb.rindex(suffix[:2])] + suffix
+                else:
+                    # éirigh (verbal noun -rí) -> éirí
+                    vn = verb[:verb.rindex(suffix[0])] + suffix
+                if get_verb_from_verbal_noun(vn) != verb:
+                    vn_entries = [e for e in get_teanglann_subentries(vn)]
+                    if len(vn_entries) == 1 and \
+                       len(vn_entries[0][0]) == 1 and \
+                       bs4_get_text(vn_entries[0][0][0]).rstrip('123456789. ').replace(' ', '') == f'{vn}:{verb}':
+                        # these ones ok and just link back directly
+                        pass
+                    else:
+                        manual_debug()
+                    # we haven't done it right?
+                    pass
+            else:
+                for good_split in [
+                        '(verbal noun ',
+                        ', verbal noun ',
+                        '; verbal noun ',
+                        ]:
+                    if good_split in flt:
+                        vn = flt.split(good_split, 1)[1]
+            if vn:
+                vn = re.split('[\s,);]', vn.lstrip())[0]
+                return vn
+            vni = first_line.find(title='verbal noun')
+            if vni:
+                vn = bs4_get_text(vni.next_sibling)
+                vn = vn.strip()
+                if ' ' in vn:
+                    manual_debug()
+                if 'of' in vn:
+                    manual_debug()
+                if '~' not in vn:
+                    manual_debug()
+                else:
+                    return vn.replace('~', verb)
+            pass
+        else:
+            if get_verb_from_verbal_noun(verb) == verb:
+                # self verbal noun, e.g. bruith
+                return verb
+
+    soup = get_definition_soup(verb, 'teanglann', lang='ga')  # same page
+    rm = soup.find(text=re.compile("\s*RELATED\s+MATCHES\s*"))
+    if rm:
+        for link in rm.parent.parent.find_all('a'):
+            #related_word = link['href'].rsplit('/', 1)[1]
+            related_word = bs4_get_text(link).strip(' »')
+            if get_verb_from_verbal_noun(related_word) == verb:
+                return related_word
+    if verb.endswith('aigh') and get_verb_from_verbal_noun(verb[:-4] + 'ú') == verb:
+        # aontaigh / aontú
+        return verb[:-4] + 'ú'
+    if verb.endswith('igh') and get_verb_from_verbal_noun(verb[:-2] + 'ú') == verb:
+        # oibrigh / oibriú
+        return verb[:-2] + 'ú'
+    if get_verb_from_verbal_noun(verb + 'adh') == verb:
+        # gets 'cor'
+        return verb + 'adh'
+    if get_verb_from_verbal_noun(verb + 'eadh') == verb:
+        # gets 'croith'
+        return verb + 'eadh'
+    if verb != 'tosnaigh':
+        manual_debug()
+    pass
+
+
+def get_verb_from_verbal_noun(word):
+    for subentries, subentry_labels in get_teanglann_subentries(word):
+        first_line = subentries[0]
+        if first_line.find(title="masculine") or \
+           first_line.find(title="feminine"):
+            # 'coradh' has it in first line (missing '1.') so can't do subentries[1:]
+            # although afraid that it shouldn't be in a heading
+            for line in subentries:
+                vn = line.find(title='verbal noun')
+                if vn and bs4_get_text(vn.next_sibling).strip() == 'of':
+                    line_text = bs4_get_text(line)
+                    line_text = line_text.split('of', 1)[-1].strip()
+                    line_text = line_text.split(' ')[0].rstrip(' .123456789')
+                    return line_text.strip()
+
 
 def get_teanglann_definition(word):
 
@@ -471,10 +598,15 @@ def manual_debug():
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        res = get_teanglann_definition(sys.argv[-1])
+        GA = sys.argv[-1]
+        PoS, EN, Gender = get_teanglann_definition(GA)
         print()
-        print(res[0], res[2])
-        print(res[1])
+        print(PoS, Gender)
+        if 'Verb' in PoS and 'ransitive' in PoS and ' ' not in GA:
+            print('ag ' + assign_verbal_noun(GA))
+        print(EN)
+    elif True:
+        print_verbal_nouns()
     elif True:
         populate_AUTO_comparison()
     elif False:
