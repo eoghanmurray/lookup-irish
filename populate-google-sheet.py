@@ -249,7 +249,8 @@ def get_teanglann_subentries(word):
                 abbr.next_sibling.string.replace_with(abbr.next_sibling.string.lstrip()[1:])
 
         if not entry.text.strip().lower().startswith(word.lower()):
-            manual_debug()
+            # https://www.teanglann.ie/en/fgb/i%20measc gives results for 'imeasc'
+            continue
 
         subentries = [soup.new_tag('div')]
         subentry_labels = ['']  # first line, may contain a 'main' entry
