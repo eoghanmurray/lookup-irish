@@ -129,7 +129,7 @@ Populate the AUTO column to compare against existing manual entries
                 PoS, EN, Gender = get_teanglann_definition(row.GA)
                 #captured = sys.stdout
                 #sys.stdout = orig
-                if EN and EN != row.EN:
+                if EN != row.EN:
                     if False:
                         print()
                         print(f'C{cell_no}:E{cell_no}')
@@ -139,9 +139,10 @@ Populate the AUTO column to compare against existing manual entries
                         print(EN)
                         #print(captured.read())  # not working
                     else:
-                        body = {
-                            'values': [[EN]],
-                        }
+                        if EN:
+                            body = { 'values': [[EN]], }
+                        else:
+                            body = { 'values': [['[NONE]']], }
                         result = sheet.values().update(
                             spreadsheetId=SPREADSHEET_ID,
                             range=f'{COLUMN_KEY["AUTO"]}{cell_no}',
