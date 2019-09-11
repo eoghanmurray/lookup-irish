@@ -317,7 +317,10 @@ def get_teanglann_definition(word):
         first_line = subentries[0]
         gender = None
         types = OrderedDict()  # using as ordered set
-        if first_line.find(title="feminine") or first_line.find(title="masculine"):
+        if first_line.find(title="feminine") and first_line.find(title="masculine"):
+            # 'thar': has 'thairis (m) thairsti (f)' and is not a noun
+            pass
+        elif first_line.find(title="feminine") or first_line.find(title="masculine"):
             soup_fb = get_definition_soup(word, 'teanglann', lang='ga-fb')
             entry_fb = soup_fb.find(class_='entry')
             types['Noun'] = True
@@ -352,9 +355,20 @@ def get_teanglann_definition(word):
             # to check: think it only goes up to a3
             if dec and dec.strip().strip('.') in ['1', '2', '3', '4']:
                 gender += dec.strip().strip('.')
-            elif dec.strip():
-                manual_debug()
-            # TODO: 'thar' spurious adj. in 'in references of <span title="adjective">a</span> general nature'
+            else:
+                soup_fb = get_definition_soup(word, 'teanglann', lang='ga-fb')
+                entry_fb = soup_fb.find(class_='entry')
+                if soup_fb.find(text='aid3'):
+                    gender += '3'
+                elif soup_fb.find(text='aid2'):
+                    gender += '2'
+                elif soup_fb.find(text='aid1'):
+                    gender += '1'  # think there'
+                elif not  soup_fb.find(text='aid'):
+                    # 'thar' spurious adj. in following:
+                    # 'references of <span title="adjective">a</span> general nature'
+                    del types['Adjective']
+                    gender = None
         if first_line.find(title="transitive verb"):
             if 'Verb' not in types:
                 types['Verb'] = OrderedDict()
