@@ -235,11 +235,6 @@ def get_teanglann_subentries(word):
         for abbr in entry.find_all(title=True):
             abbr_text = abbr.text.strip()
             abbr_title = abbr['title'].strip()
-            if (len(abbr_text) > 4 and not abbr_title.startswith(abbr_text)) or \
-                len(abbr_text) > len(abbr_title):
-                if abbr_text != 'W.Tel':
-                    # good: <span class="fgb tip" title="Wireless Telephony and Telegraphy">W.Tel</span>
-                    manual_debug()
             if not abbr.string:
                 # <span class="fgb tip" title="Electrical Engineering"><span class="fgb tip" title="Electricity; electrical">El</span>.<span class="fgb tip" title="Engineering">E</span></span>
                 abbr.string = abbr_title
