@@ -237,8 +237,14 @@ def get_teanglann_subentries(word):
             abbr_title = abbr['title'].strip()
             if (len(abbr_text) > 4 and not abbr_title.startswith(abbr_text)) or \
                 len(abbr_text) > len(abbr_title):
-                manual_debug()
-            abbr.string.replace_with(abbr_title)
+                if abbr_text != 'W.Tel':
+                    # good: <span class="fgb tip" title="Wireless Telephony and Telegraphy">W.Tel</span>
+                    manual_debug()
+            if not abbr.string:
+                # <span class="fgb tip" title="Electrical Engineering"><span class="fgb tip" title="Electricity; electrical">El</span>.<span class="fgb tip" title="Engineering">E</span></span>
+                abbr.string = abbr_title
+            else:
+                abbr.string.replace_with(abbr_title)
             if abbr.next_sibling and abbr.next_sibling.string.lstrip().startswith('.'):
                 abbr.next_sibling.string.replace_with(abbr.next_sibling.string.lstrip()[1:])
 
@@ -513,6 +519,9 @@ if __name__ == '__main__':
     elif False:
         # was not getting a1 -> adjective here
         get_teanglann_definition('leanúnach')
+    elif False:
+        # some complex abbreviations here
+        get_teanglann_definition('dírigh')
     elif False:
         # verb intransitive + transitive, with extra entry with intransitive verb only
         # expecting to get 'Verb - Transitive & Intransitive' back
