@@ -30,6 +30,8 @@ for col, letter in zip(FIRST_ROW_SIG.split(' '), alphabet):
     COLUMN_KEY[col] = letter
 RowTup = namedtuple('RowTup', FIRST_ROW_SIG)
 
+cum_sleep = 0
+
 def get_sheet():
     """Shows basic usage of the Sheets API.
     Prints values from a sample spreadsheet.
@@ -147,13 +149,18 @@ Populate the AUTO column to compare against existing manual entries
                             body=body).execute()
                         print('{0} cells updated.'.format(result.get('updatedCells')))
                     count += 1
-                    time.sleep(randint(1, 10))
 
             if count == 100:
                 break
 
 
 def get_definition_soup(word, dictionary, lang='ga', page_no=1):
+    global cum_sleep
+    if cum_sleep:
+        # a little bit of backoff between requests
+        time.sleep(cum_sleep + randint(1, 4))
+        cum_sleep += 0.25
+
     headers = {
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/76.0.3809.100 Chrome/76.0.3809.100 Safari/537.36'
     }
