@@ -532,6 +532,9 @@ def get_teanglann_definition(word):
             for trans in transs:
                 trans_text = clean_text(trans.get_text(), word)
                 formatted_text = formatted_text.replace(trans_text, f'{Fore.YELLOW}{trans_text}{Style.RESET_ALL}')
+            for example in subentry.find_all(class_='example'):
+                example_text = clean_text(example.get_text(), word)
+                formatted_text = formatted_text.replace(example_text, f'\n    {example_text}')
             if not transs:
                 print(f'{label}[{formatted_text}]')
             else:
