@@ -14,6 +14,7 @@ import codecs
 import sys
 import time
 from random import randint
+from colorama import Fore, Back, Style
 
 
 # If modifying these scopes, delete the file token.pickle.
@@ -429,7 +430,8 @@ def get_verb_from_verbal_noun(word):
 def get_teanglann_definition(word):
 
     candidates = get_foclóir_candidates(word)
-    print(word, 'foclóir:', candidates)
+    print()
+    print(f'{Back.YELLOW}{Fore.BLACK}{word}{Style.RESET_ALL} foclóir:', candidates)
 
     parts_of_speech = OrderedDict()
     definitions = []
@@ -514,7 +516,7 @@ def get_teanglann_definition(word):
                     types['Verbal Noun'] = ' of ' + verb_name
 
         print()
-        print(word, print_types(types), gender)
+        print(f'{Back.RED}{word}{Style.RESET_ALL}', print_types(types), gender)
         for label, subentry in zip(subentry_labels, subentries):
             transs = subentry.find_all(class_='trans')
             if len(transs) > 1 and (
@@ -526,8 +528,12 @@ def get_teanglann_definition(word):
             ):
                 transs = transs[1:]
             raw_text = clean_text(' '.join(subentry.stripped_strings), word)
-            if len(transs) < 1:
-                print(f'{label}[{raw_text}]')
+            formatted_text = raw_text
+            for trans in transs:
+                trans_text = clean_text(trans.get_text(), word)
+                formatted_text = formatted_text.replace(trans_text, f'{Fore.YELLOW}{trans_text}{Style.RESET_ALL}')
+            if not transs:
+                print(f'{label}[{formatted_text}]')
             else:
                 trans_text = clean_text(transs[0].get_text(), word)
                 maybe_to = ''
@@ -535,19 +541,19 @@ def get_teanglann_definition(word):
                     maybe_to = 'to '
                 defn = '/'.join([tgw for tgw in re.split('[,;] *', trans_text) if re.sub('\s*\(.*?\)\s*', '', tgw) in candidates])
                 if len(transs) > 1:
-                    raw_text = f'X{len(transs)} {raw_text}'
+                    formatted_text = f'X{len(transs)} {formatted_text}'
                 if defn:
                     if maybe_to + defn not in definitions:
-                        print(f'{label}{maybe_to}{defn}[{raw_text}]')
+                        print(f'{label}{Fore.GREEN}{maybe_to}{defn}{Style.RESET_ALL} [{formatted_text}]')
                         definitions.append(maybe_to + defn)
                 else:
                     defn = '/'.join([fcw for fcw in candidates if fcw in raw_text])
                     if False and defn:
                         # this picks up 'persist' instead of 'persisting/persistent' for 'leanúnach'
-                        print(f'{label}{maybe_to}{defn}[{raw_text}]')
+                        print(f'{label}{maybe_to}{defn}[{formatted_text}]')
                         definitions.append(maybe_to + defn)
                     else:
-                        print(f'{label}[{raw_text}]')
+                        print(f'{label}[{formatted_text}]')
         if gender and gender not in genders:
             genders.append(gender)
         for k, v in types.items():
