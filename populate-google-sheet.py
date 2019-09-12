@@ -528,10 +528,10 @@ def get_teanglann_definition(word):
             ):
                 transs = transs[1:]
             raw_text = clean_text(' '.join(subentry.stripped_strings), word)
-            formatted_text = raw_text
             for trans in transs:
-                trans_text = clean_text(trans.get_text(), word)
-                formatted_text = formatted_text.replace(trans_text, f'{Fore.YELLOW}{trans_text}{Style.RESET_ALL}')
+                trans.insert_before(Fore.YELLOW)
+                trans.insert_after(Style.RESET_ALL)
+            formatted_text = clean_text(' '.join(subentry.stripped_strings), word)
             for example in subentry.find_all(class_='example'):
                 example_text = clean_text(example.get_text(), word)
                 formatted_text = formatted_text.replace(example_text, f'\n    {example_text}')
