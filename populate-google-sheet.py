@@ -558,7 +558,8 @@ def get_teanglann_definition(word, return_raw=False):
                 maybe_to = ''
                 if 'Verb' in types:
                     maybe_to = 'to '
-                defn = '/'.join([tgw for tgw in re.split('[,;] *', trans_text) if re.sub('\s*\(.*?\)\s*', '', tgw) in candidates])
+                trans_words = re.split('[,;] *', trans_text)
+                defn = '/'.join([tgw for tgw in trans_words if re.sub('\s*\(.*?\)\s*', '', tgw) in candidates])
                 if len(transs) > 1:
                     formatted_text = f'X{len(transs)} {formatted_text}'
                 raw_definitions.append(f'[{trans_text}]')
@@ -569,13 +570,13 @@ def get_teanglann_definition(word, return_raw=False):
                         definitions.append(definition)
                 else:
                     for fcw in candidates:
-                        if trans_text.startswith(fcw + ' '):
-                            rest = ' (' + trans_text[len(fcw) + 1:] + ')'
+                        if all(tgw.startswith(fcw + ' ') for tgw in trans_words):
+                            rest = ' (' + ', '.join(tgw[len(fcw) + 1:] for tgw in trans_words) + ')'
                             print(f'{label}{Fore.GREEN}{maybe_to}{fcw}{Fore.MAGENTA}{rest}{Style.RESET_ALL} [{formatted_text}]')
                             definitions.append(maybe_to + fcw + rest)
                             break
-                        elif trans_text.endswith(' ' + fcw):
-                            rest = '(' + trans_text[:-len(fcw) - 1] + ') '
+                        elif all(tgw.endswith(' ' + fcw) for tgw in trans_words):
+                            rest = '(' + ', '.join(tgw[:-len(fcw) - 1] for tgw in trans_words) + ') '
                             print(f'{label}{Fore.GREEN}{maybe_to}{Fore.MAGENTA}{rest}{Fore.GREEN}{fcw}{Style.RESET_ALL} [{formatted_text}]')
                             definitions.append(maybe_to + rest + fcw)
                             break
@@ -697,12 +698,13 @@ if __name__ == '__main__':
         # '(formal) application' to match with 'application'
         get_teanglann_definition('iarratas')
     elif False:
-        # get '(proper) condition'
-        get_teanglann_definition('bail')
-    elif False:
         # was not getting a1 -> adjective here
         # ensure don't get 'persist' ('persistent' is in teanglann, 'persisting' is in focloir)
         get_teanglann_definition('leanúnach')
+        # get '(proper) condition'
+        get_teanglann_definition('bail')
+        # get 'exact (measure, position)' instead of 'exact (measure; exact position)'
+        get_teanglann_definition('beacht')
     elif False:
         # some complex abbreviations here
         get_teanglann_definition('dírigh')
