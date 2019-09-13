@@ -86,7 +86,7 @@ def populate_empty(refresh=True):
                     not row.EN or
                     (refresh and row.EN.endswith('[AUTO]'))
                     ):
-                PoS, EN, Gender = get_teanglann_definition(row.GA)
+                PoS, EN, Gender = get_teanglann_definition(row.GA, return_raw=True)
                 if EN:
                     values = [
                         [
@@ -428,7 +428,7 @@ def get_verb_from_verbal_noun(word):
                     return line_text.strip()
 
 
-def get_teanglann_definition(word):
+def get_teanglann_definition(word, return_raw=False):
 
     candidates = get_foclóir_candidates(word)
     print()
@@ -436,6 +436,7 @@ def get_teanglann_definition(word):
 
     parts_of_speech = OrderedDict()
     definitions = []
+    raw_definitions = []
     genders = []
 
     for subentries, subentry_labels in get_teanglann_subentries(word):
@@ -546,6 +547,7 @@ def get_teanglann_definition(word):
                 defn = '/'.join([tgw for tgw in re.split('[,;] *', trans_text) if re.sub('\s*\(.*?\)\s*', '', tgw) in candidates])
                 if len(transs) > 1:
                     formatted_text = f'X{len(transs)} {formatted_text}'
+                raw_definitions.append(f'[{trans_text}]')
                 if defn:
                     if maybe_to + defn not in definitions:
                         print(f'{label}{Fore.GREEN}{maybe_to}{defn}{Style.RESET_ALL} [{formatted_text}]')
@@ -565,6 +567,9 @@ def get_teanglann_definition(word):
                 parts_of_speech[k].update(v)
             else:
                 parts_of_speech[k] = v
+    if return_raw == 'force' or \
+       (not definitions and return_raw):
+        return print_types(parts_of_speech), '\n'.join(raw_definitions), '\n'.join(genders)
     return print_types(parts_of_speech), '\n'.join(definitions), '\n'.join(genders)
 
 
