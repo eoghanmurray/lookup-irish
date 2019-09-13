@@ -75,40 +75,59 @@ def get_range(sheet):
         yield RowTup(*v_ext)
 
 
+def insert_block(sheet, range, values):
+    body = {
+        'values': values,
+    }
+    result = sheet.values().update(
+        spreadsheetId=SPREADSHEET_ID,
+        range=range,
+        valueInputOption='RAW',
+        body=body).execute()
+    print('{0} cells updated.'.format(result.get('updatedCells')))
+
+
 def populate_empty(refresh=True, limit=15):
     sheet = get_sheet()
     rows = get_range(sheet)
     if rows:
         count = 0
+        values = []
+        range_start = None
         for n, row in enumerate(rows):
             cell_no = n + 1  # 1 for 0 index
+            insert_now = False
             if row.GA and (
                     not row.EN or
                     (refresh and row.EN.endswith('[AUTO]'))
                     ):
                 PoS, EN, Gender = get_teanglann_definition(row.GA, return_raw=True)
                 if EN and EN + '\n[AUTO]' != row.EN:
-                    values = [
+                    values.append(
                         [
                             PoS,
                             EN + '\n[AUTO]',
                             Gender,
                         ],
-                    ]
-                    body = {
-                        'values': values,
-                    }
-                    result = sheet.values().update(
-                        spreadsheetId=SPREADSHEET_ID,
-                        range=f'{COLUMN_KEY["PoS"]}{cell_no}:{COLUMN_KEY["Gender"]}{cell_no}',
-                        valueInputOption='RAW',
-                        body=body).execute()
-                    print('{0} cells updated.'.format(result.get('updatedCells')))
+                    )
+                    if not range_start:
+                        range_start = f'{COLUMN_KEY["PoS"]}{cell_no}'
+                    range_end = f'{COLUMN_KEY["Gender"]}{cell_no}'
                     count += 1
+                else:
+                    insert_now = True
+            else:
+                insert_now = True
+            if values and insert_now:
+                insert_block(sheet, range_start + ':' + range_end, values)
+                values = []
+                range_start = None
 
             if count == limit:
                 print(f'{count} rows updated')
                 break
+        if values:
+            insert_block(sheet, range_start + ':' + range_end, values)
 
 
 def populate_AUTO_comparison(refresh=False):
@@ -726,10 +745,10 @@ if __name__ == '__main__':
         print(EN)
     elif False:
         find_teanglann_periphrases()
-    elif True:
+    elif False:
         populate_AUTO_comparison(refresh=True)
     elif True:
-        populate_empty()
+        populate_empty(limit=-1)
     elif False:
         print_verbal_nouns()
     elif False:
