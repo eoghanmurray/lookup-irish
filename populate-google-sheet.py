@@ -433,7 +433,7 @@ def get_verb_from_verbal_noun(word):
                     return line_text.strip()
 
 
-def get_teanglann_definition(word, return_raw=False):
+def get_teanglann_definition(word, return_raw=False, sort_by_foclóir=False):
 
     candidates = get_foclóir_candidates(word)
     print()
@@ -560,7 +560,20 @@ def get_teanglann_definition(word, return_raw=False):
                     maybe_to = 'to '
                 trans_words = re.split('[,;] *', trans_text)
                 #trans_words = [tgw for tgw in trans_words if tgw not in definitions]
-                defn = '/'.join([tgw for tgw in trans_words if re.sub('\s*\(.*?\)\s*', '', tgw) in candidates])
+                defn_words = [tgw for tgw in trans_words if re.sub('\s*\(.*?\)\s*', '', tgw) in candidates]
+                if sort_by_foclóir and defn_words:
+                    foclóir_scores = []
+                    for defn_word in defn_words:
+                        foclóir_scores.append((foclóir_score_definition(defn_word, word), defn_word))
+                    foclóir_scores.sort()
+                    foclóir_min_score = min(foclóir_scores)[0]
+                    if False:
+                        # debug
+                        defn = '/'.join([fs[1] + f' ({fs[0]})' for fs in foclóir_scores])
+                    else:
+                        defn = '/'.join([fs[1] for fs in foclóir_scores])
+                else:
+                    defn = '/'.join(defn_words)
                 if len(transs) > 1:
                     formatted_text = f'X{len(transs)} {formatted_text}'
                 raw_definitions.append(f'[{trans_text}]')
@@ -586,7 +599,14 @@ def get_teanglann_definition(word, return_raw=False):
                     # could filter/rearrange existing definitions here
                     if 'Prefix' in types:
                         definition = definition + ' (as prefix)'
-                    definitions.append(definition)
+                    if sort_by_foclóir:
+                        if 'Verb' in types:
+                            # put all verbs at the end (could do better)
+                            definitions.append((foclóir_min_score + 10, definition))
+                        else:
+                            definitions.append((foclóir_min_score, definition))
+                    else:
+                        definitions.append(definition)
 
         if gender and gender not in genders:
             genders.append(gender)
@@ -598,7 +618,34 @@ def get_teanglann_definition(word, return_raw=False):
     if return_raw == 'force' or \
        (not definitions and return_raw):
         return print_types(parts_of_speech), '\n'.join(raw_definitions), '\n'.join(genders)
-    return print_types(parts_of_speech), '\n'.join(definitions), '\n'.join(genders)
+    elif sort_by_foclóir:
+        definitions.sort()
+        mdefinitions = '\n'.join([d[1] for d in definitions])
+        return print_types(parts_of_speech), mdefinitions, '\n'.join(genders)
+    else:
+        return print_types(parts_of_speech), '\n'.join(definitions), '\n'.join(genders)
+
+
+def foclóir_score_definition(en, ga):
+    """
+Estimate of how important a GA definition is in terms of the Englis
+we count what percentage of translations use the word
+between 0.0 and 1.0
+lower is better
+    """
+    soup = get_definition_soup(en, 'foclóir', lang='en')
+    senses = soup.find_all(class_="sense")
+    found_count = 0
+    lang_gas_count = 0
+    for i, sense in enumerate(senses):
+        lang_gas = sense.find_all(attrs={'xml:lang': 'ga', 'class': 'cit_translation'})
+        for lang_ga in lang_gas:
+            lang_gas_count += 1
+            if lang_ga.find(class_='quote', text=ga) or \
+               ga in bs4_get_text(lang_ga.find(class_='quote')):
+                found_count += 1
+                break
+    return 1 - (found_count / lang_gas_count)
 
 
 def bs4_get_text(node_or_string):
