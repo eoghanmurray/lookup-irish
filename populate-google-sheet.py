@@ -75,15 +75,17 @@ def get_range(sheet):
         yield RowTup(*v_ext)
 
 
-def populate_empty():
+def populate_empty(refresh=True):
     sheet = get_sheet()
     rows = get_range(sheet)
     if rows:
         count = 0
         for n, row in enumerate(rows):
             cell_no = n + 1  # 1 for 0 index
-            # TODO: also re-update existing rows where row.EN.endswith('[AUTO]')
-            if row.GA and not row.EN:
+            if row.GA and (
+                    not row.EN or
+                    (refresh and row.EN.endswith('[AUTO]'))
+                    ):
                 PoS, EN, Gender = get_teanglann_definition(row.GA)
                 if EN:
                     values = [
@@ -614,6 +616,8 @@ if __name__ == '__main__':
             print('ag ' + assign_verbal_noun(GA))
         print(EN)
     elif True:
+        populate_empty()
+    elif False:
         print_verbal_nouns()
     elif True:
         populate_AUTO_comparison()
