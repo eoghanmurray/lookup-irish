@@ -554,11 +554,17 @@ def get_teanglann_definition(word, return_raw=False):
                         print(f'{label}{Fore.GREEN}{maybe_to}{defn}{Style.RESET_ALL} [{formatted_text}]')
                         definitions.append(maybe_to + defn)
                 else:
-                    defn = '/'.join([fcw for fcw in candidates if fcw in raw_text])
-                    if False and defn:
-                        # this picks up 'persist' instead of 'persisting/persistent' for 'leanúnach'
-                        print(f'{label}{maybe_to}{defn}[{formatted_text}]')
-                        definitions.append(maybe_to + defn)
+                    for fcw in candidates:
+                        if trans_text.startswith(fcw + ' '):
+                            rest = ' (' + trans_text[len(fcw) + 1:] + ')'
+                            print(f'{label}{Fore.GREEN}{maybe_to}{fcw}{Fore.MAGENTA}{rest}{Style.RESET_ALL} [{formatted_text}]')
+                            definitions.append(maybe_to + fcw + rest)
+                            break
+                        elif trans_text.endswith(' ' + fcw):
+                            rest = '(' + trans_text[:-len(fcw) - 1] + ') '
+                            print(f'{label}{Fore.GREEN}{maybe_to}{Fore.MAGENTA}{rest}{Fore.GREEN}{fcw}{Style.RESET_ALL} [{formatted_text}]')
+                            definitions.append(maybe_to + rest + fcw)
+                            break
                     else:
                         print(f'{label}[{formatted_text}]')
         if gender and gender not in genders:
@@ -677,7 +683,11 @@ if __name__ == '__main__':
         # '(formal) application' to match with 'application'
         get_teanglann_definition('iarratas')
     elif False:
+        # get '(proper) condition'
+        get_teanglann_definition('bail')
+    elif False:
         # was not getting a1 -> adjective here
+        # ensure don't get 'persist' ('persistent' is in teanglann, 'persisting' is in focloir)
         get_teanglann_definition('leanúnach')
     elif False:
         # some complex abbreviations here
