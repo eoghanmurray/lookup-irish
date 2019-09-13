@@ -584,6 +584,8 @@ def get_teanglann_definition(word, return_raw=False):
                         print(f'{label}[{formatted_text}]')
                 if definition and definition not in definitions:
                     # could filter/rearrange existing definitions here
+                    if 'Prefix' in types:
+                        definition = definition + ' (as prefix)'
                     definitions.append(definition)
 
         if gender and gender not in genders:
