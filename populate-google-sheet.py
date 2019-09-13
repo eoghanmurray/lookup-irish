@@ -83,7 +83,6 @@ def populate_empty():
         for n, row in enumerate(rows):
             cell_no = n + 1  # 1 for 0 index
             # TODO: also re-update existing rows where row.EN.endswith('[AUTO]')
-            # TODO: if there's an existing manual EN definition, put the auto definition in the (new) first AUTO column
             if row.GA and not row.EN:
                 PoS, EN, Gender = get_teanglann_definition(row.GA)
                 if EN:
