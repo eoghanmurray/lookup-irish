@@ -84,7 +84,7 @@ def populate_empty():
             cell_no = n + 1  # 1 for 0 index
             # TODO: also re-update existing rows where row.EN.endswith('[AUTO]')
             # TODO: if there's an existing manual EN definition, put the auto definition in the (new) first AUTO column
-            if len(row) == 1:  # only GA column is defined
+            if row.GA and not row.EN:
                 PoS, EN, Gender = get_teanglann_definition(row.GA)
                 if EN:
                     values = [
@@ -99,13 +99,13 @@ def populate_empty():
                     }
                     result = sheet.values().update(
                         spreadsheetId=SPREADSHEET_ID,
-                        range=f'{COLUMN_KEY["PoS"]}{cell_no}:COLUMN_KEY["Gender"]{cell_no}',
+                        range=f'{COLUMN_KEY["PoS"]}{cell_no}:{COLUMN_KEY["Gender"]}{cell_no}',
                         valueInputOption='RAW',
                         body=body).execute()
                     print('{0} cells updated.'.format(result.get('updatedCells')))
                     count += 1
 
-            if count == 5:
+            if count == 15:
                 break
 
 
