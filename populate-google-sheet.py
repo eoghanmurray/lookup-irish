@@ -13,7 +13,7 @@ from collections import OrderedDict, namedtuple
 import codecs
 import sys
 import time
-from random import randint
+from random import randint, shuffle
 from colorama import Fore, Back, Style
 
 
@@ -626,6 +626,35 @@ def get_teanglann_definition(word, return_raw=False, sort_by_foclóir=False):
         return print_types(parts_of_speech), '\n'.join(definitions), '\n'.join(genders)
 
 
+def find_teanglann_periphrases():
+    """
+total words: 53,677
+323 multi-word entries:
+...
+téigh trí
+thar ceann
+thar n-ais
+tit amach
+tit ar
+tit chuig
+tit do
+tit faoi
+...
+    """
+    alphabet = list('abcdefghijklmnopqrstuvwxyz')
+    word_count = 0
+    shuffle(alphabet)
+    for letter in alphabet:
+        soup = get_definition_soup('_' + letter, 'teanglann')
+        abc = soup.find(class_='abcListings')
+        for word_item in abc.find_all(class_="abcItem"):
+            potential_periphrase = bs4_get_text(word_item.find('a'))
+            if ' ' in potential_periphrase:
+                print(potential_periphrase)
+            else:
+                word_count += 1
+    print('total words:', word_count)
+
 def foclóir_score_definition(en, ga):
     """
 Estimate of how important a GA definition is in terms of the Englis
@@ -695,6 +724,8 @@ if __name__ == '__main__':
         if 'Verb' in PoS and 'ransitive' in PoS and ' ' not in GA:
             print('ag ' + assign_verbal_noun(GA))
         print(EN)
+    elif False:
+        find_teanglann_periphrases()
     elif True:
         populate_AUTO_comparison(refresh=True)
     elif True:
