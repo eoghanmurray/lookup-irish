@@ -531,6 +531,15 @@ def get_teanglann_definition(word, return_raw=False):
             ):
                 transs = transs[1:]
             raw_text = clean_text(' '.join(subentry.stripped_strings), word)
+            first_trans_extra = ''
+            if transs and transs[0].previous_sibling and \
+               transs[0].previous_sibling.string and \
+               transs[0].previous_sibling.string.strip() == ':' and \
+               transs[0].previous_sibling.previous_sibling and \
+               transs[0].previous_sibling.previous_sibling.find(title=True):
+                # important qualifiers like military: textile: etc.
+                first_trans_extra = ' (' + transs[0].previous_sibling.\
+                    previous_sibling.find(title=True)['title'].lower() + ')'
             for trans in transs:
                 trans.insert_before(Fore.YELLOW)
                 trans.insert_after(Style.RESET_ALL)
@@ -550,9 +559,10 @@ def get_teanglann_definition(word, return_raw=False):
                     formatted_text = f'X{len(transs)} {formatted_text}'
                 raw_definitions.append(f'[{trans_text}]')
                 if defn:
-                    if maybe_to + defn not in definitions:
-                        print(f'{label}{Fore.GREEN}{maybe_to}{defn}{Style.RESET_ALL} [{formatted_text}]')
-                        definitions.append(maybe_to + defn)
+                    definition = maybe_to + defn + first_trans_extra
+                    if definition not in definitions:
+                        print(f'{label}{Fore.GREEN}{definition}{Style.RESET_ALL} [{formatted_text}]')
+                        definitions.append(definition)
                 else:
                     for fcw in candidates:
                         if trans_text.startswith(fcw + ' '):
@@ -692,6 +702,11 @@ if __name__ == '__main__':
     elif False:
         # some complex abbreviations here
         get_teanglann_definition('dírigh')
+    elif False:
+        # get 'volunteer (military)'
+        get_teanglann_definition('óglach')
+        # get 'warp (textiles)'
+        get_teanglann_definition('dlúth')
     elif False:
         # verb intransitive + transitive, with extra entry with intransitive verb only
         # expecting to get 'Verb - Transitive & Intransitive' back
