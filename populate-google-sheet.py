@@ -132,27 +132,31 @@ Populate the AUTO column to compare against existing manual entries
                 PoS, EN, Gender = get_teanglann_definition(row.GA)
                 #captured = sys.stdout
                 #sys.stdout = orig
-                if EN != row.EN:
-                    if False:
-                        print()
-                        print(f'C{cell_no}:E{cell_no}')
-                        print(row.GA)
-                        print(row.EN)
-                        print(' vs.')
-                        print(EN)
-                        #print(captured.read())  # not working
-                    else:
-                        if EN:
-                            body = { 'values': [[EN]], }
+                if False:
+                    print()
+                    print(f'C{cell_no}:E{cell_no}')
+                    print(row.GA)
+                    print(row.EN)
+                    print(' vs.')
+                    print(EN)
+                    #print(captured.read())  # not working
+                else:
+                    if EN:
+                        if EN == row.EN:
+                            value = ''
                         else:
-                            body = { 'values': [['[NONE]']], }
+                            value = EN
+                    else:
+                        value = '[NONE]'
+                    if value != row.AUTO:
+                        body = { 'values': [[value]], }
                         result = sheet.values().update(
                             spreadsheetId=SPREADSHEET_ID,
                             range=f'{COLUMN_KEY["AUTO"]}{cell_no}',
                             valueInputOption='RAW',
                             body=body).execute()
                         print('{0} cells updated.'.format(result.get('updatedCells')))
-                    count += 1
+                        count += 1
 
             if count == 100:
                 break
@@ -638,11 +642,11 @@ if __name__ == '__main__':
             print('ag ' + assign_verbal_noun(GA))
         print(EN)
     elif True:
+        populate_AUTO_comparison(refresh=True)
+    elif True:
         populate_empty()
     elif False:
         print_verbal_nouns()
-    elif True:
-        populate_AUTO_comparison()
     elif False:
         # adverb/preposition/adverb in a single entry
         get_teanglann_definition('anall')
