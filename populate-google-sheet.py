@@ -75,7 +75,7 @@ def get_range(sheet):
         yield RowTup(*v_ext)
 
 
-def populate_empty(refresh=True):
+def populate_empty(refresh=True, limit=15):
     sheet = get_sheet()
     rows = get_range(sheet)
     if rows:
@@ -87,7 +87,7 @@ def populate_empty(refresh=True):
                     (refresh and row.EN.endswith('[AUTO]'))
                     ):
                 PoS, EN, Gender = get_teanglann_definition(row.GA, return_raw=True)
-                if EN:
+                if EN and EN + '\n[AUTO]' != row.EN:
                     values = [
                         [
                             PoS,
@@ -106,7 +106,8 @@ def populate_empty(refresh=True):
                     print('{0} cells updated.'.format(result.get('updatedCells')))
                     count += 1
 
-            if count == 15:
+            if count == limit:
+                print(f'{count} rows updated')
                 break
 
 
