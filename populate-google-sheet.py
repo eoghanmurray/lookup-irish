@@ -124,7 +124,7 @@ Populate the AUTO column to compare against existing manual entries
             cell_no = n + 1  # 1 for 0 index
             if row.AUTO != '' and not refresh:
                 continue
-            if not row.EN:
+            if not row.EN or row.EN.endswith('[AUTO]'):
                 continue
             if n > 200:
                 #orig = sys.stdout
