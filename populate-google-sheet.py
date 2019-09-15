@@ -131,6 +131,48 @@ def populate_empty(refresh=True, limit=15):
             insert_block(sheet, range_start + ':' + range_end, values)
 
 
+def populate_pos_gender(limit=-1):
+    sheet = get_sheet()
+    rows = get_range(sheet)
+    if rows:
+        count = 0
+        values = []
+        range_start = None
+        for n, row in enumerate(rows):
+            cell_no = n + 1  # 1 for 0 index
+            insert_now = False
+            if row.GA and (
+                    not row.Pos
+                    ):
+                PoS, EN, Gender = get_teanglann_definition(row.GA)
+                if PoS or Gender:
+                    values.append(
+                        [
+                            PoS,
+                            row.EN,  # keep current value
+                            Gender,
+                        ],
+                    )
+                    if not range_start:
+                        range_start = f'{COLUMN_KEY["PoS"]}{cell_no}'
+                    range_end = f'{COLUMN_KEY["Gender"]}{cell_no}'
+                    count += 1
+                else:
+                    insert_now = True
+            else:
+                insert_now = True
+            if values and insert_now:
+                insert_block(sheet, range_start + ':' + range_end, values)
+                values = []
+                range_start = None
+
+            if count == limit:
+                print(f'{count} rows updated')
+                break
+        if values:
+            insert_block(sheet, range_start + ':' + range_end, values)
+
+
 def populate_genitive_verbal_noun(limit=-1, refresh=True):
     sheet = get_sheet()
     rows = get_range(sheet)
