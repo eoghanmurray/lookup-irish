@@ -15,6 +15,7 @@ import sys
 import time
 from random import randint, shuffle
 from colorama import Fore, Back, Style
+from itertools import permutations
 
 
 # If modifying these scopes, delete the file token.pickle.
@@ -22,9 +23,9 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # The ID and range of a sample spreadsheet.
 SPREADSHEET_ID = '1kiZlZp8weyILstvtL0PfIQkQGzuG7oZfP8n_qkMFAWo'
-RANGE = '6450-most-frequent-irish-words!A1:F'
+RANGE = '6450-most-frequent-irish-words!A1:G'
 
-FIRST_ROW_SIG = 'AUTO GA PoS EN Gender Tags'
+FIRST_ROW_SIG = 'AUTO GA PoS EN Gender Tags GenitiveVN'
 COLUMN_KEY = {}
 alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 for col, letter in zip(FIRST_ROW_SIG.split(' '), alphabet):
@@ -71,7 +72,7 @@ def get_range(sheet):
         return False
     assert ' '.join(values[0]) == FIRST_ROW_SIG
     for v in values:
-        v_ext = (v + [''] * 6)[:6]
+        v_ext = (v + [''] * len(values[0]))[:len(values[0])]
         yield RowTup(*v_ext)
 
 
@@ -113,6 +114,64 @@ def populate_empty(refresh=True, limit=15):
                     if not range_start:
                         range_start = f'{COLUMN_KEY["PoS"]}{cell_no}'
                     range_end = f'{COLUMN_KEY["Gender"]}{cell_no}'
+                    count += 1
+                else:
+                    insert_now = True
+            else:
+                insert_now = True
+            if values and insert_now:
+                insert_block(sheet, range_start + ':' + range_end, values)
+                values = []
+                range_start = None
+
+            if count == limit:
+                print(f'{count} rows updated')
+                break
+        if values:
+            insert_block(sheet, range_start + ':' + range_end, values)
+
+
+def populate_genitive_verbal_noun(limit=-1, refresh=True):
+    sheet = get_sheet()
+    rows = get_range(sheet)
+    if rows:
+        count = 0
+        values = []
+        range_start = None
+        for n, row in enumerate(rows):
+            cell_no = n + 1  # 1 for 0 index
+            insert_now = False
+            if row.GA and (
+                    not row.GenitiveVN or
+                    refresh
+                    ):
+                PoS, EN, Gender = get_teanglann_definition(row.GA)
+                GenitiveVN = ''
+                if 'Noun' in PoS and 'Noun' in row.PoS and ' ' not in row.GA:
+                    declensions = assign_plural_genitive(row.GA, html=True)
+                    if len(declensions) == 5:
+                        GenitiveVN += f'<div class="{Gender[:2]} d{Gender[2:]}">'
+                        GenitiveVN += declensions['nominative singular'] + '/' + declensions['nominative plural']
+                        GenitiveVN += '<br>'
+                        GenitiveVN += declensions['genitive singular'] + '/' + declensions['genitive plural']
+                        GenitiveVN += '</div>'
+                if 'Verb' in PoS and 'ransitive' in PoS and ' ' and 'Verb' in row.PoS and 'ransitive' in row.PoS and ' '  not in row.GA:
+                    if GenitiveVN:
+                        GenitiveVN += '\n'
+                    vn = assign_verbal_noun(row.GA)
+                    if not vn:
+                        manual_debug()
+                    else:
+                        GenitiveVN += 'ag ' + vn
+                if (PoS or Gender) and GenitiveVN:
+                    values.append(
+                        [
+                            GenitiveVN
+                        ],
+                    )
+                    if not range_start:
+                        range_start = f'{COLUMN_KEY["GenitiveVN"]}{cell_no}'
+                    range_end = f'{COLUMN_KEY["GenitiveVN"]}{cell_no}'
                     count += 1
                 else:
                     insert_now = True
@@ -274,23 +333,26 @@ def get_foclóir_candidates(word):
     return candidates
 
 
+def expand_abbreviations(soup):
+    for abbr in soup.find_all(title=True):
+        abbr_text = abbr.text.strip()
+        abbr_title = abbr['title'].strip()
+        if not abbr.string:
+            # <span class="fgb tip" title="Electrical Engineering"><span class="fgb tip" title="Electricity; electrical">El</span>.<span class="fgb tip" title="Engineering">E</span></span>
+            abbr.string = abbr_title
+        else:
+            abbr.string.replace_with(abbr_title)
+        if abbr.next_sibling and abbr.next_sibling.string.lstrip().startswith('.'):
+            abbr.next_sibling.string.replace_with(abbr.next_sibling.string.lstrip()[1:])
+    return soup
+
+
 def get_teanglann_subentries(word):
     soup = get_definition_soup(word, 'teanglann', lang='ga')
 
     for entry in soup.find_all(class_='entry'):
 
-        # expand abbreviations
-        for abbr in entry.find_all(title=True):
-            abbr_text = abbr.text.strip()
-            abbr_title = abbr['title'].strip()
-            if not abbr.string:
-                # <span class="fgb tip" title="Electrical Engineering"><span class="fgb tip" title="Electricity; electrical">El</span>.<span class="fgb tip" title="Engineering">E</span></span>
-                abbr.string = abbr_title
-            else:
-                abbr.string.replace_with(abbr_title)
-            if abbr.next_sibling and abbr.next_sibling.string.lstrip().startswith('.'):
-                abbr.next_sibling.string.replace_with(abbr.next_sibling.string.lstrip()[1:])
-
+        expand_abbreviations(entry)
         if not entry.text.strip().lower().startswith(word.lower()):
             # https://www.teanglann.ie/en/fgb/i%20measc gives results for 'imeasc'
             continue
@@ -348,6 +410,178 @@ def get_teanglann_subentries(word):
         yield subentries, subentry_labels
 
 
+def assign_gender_declension(noun, first_line):
+    soup_fb = get_definition_soup(noun, 'teanglann', lang='ga-fb')
+    entry_fb = soup_fb.find(class_='entry')
+    if first_line.find(title="feminine"):
+        gender = 'nf'
+        k_lookup = 'bain'
+    elif first_line.find(title="masculine"):
+        gender = 'nm'
+        k_lookup = 'fir'
+    else:
+        return None
+    if entry_fb:
+        for subentry in entry_fb.find_all(class_='subentry'):
+            # https://www.teanglann.ie/en/fb/trumpa - ignore trumpadóir
+            subentry.extract()
+        noun_decs = entry_fb.find_all(
+            string=re.compile(k_lookup + '[1-4]')
+        )
+        declensions = set()
+        for noun_dec in noun_decs:
+            declensions.add(noun_dec.string.strip()[-1])
+        if len(declensions) > 1:
+            manual_debug()
+        elif declensions:
+            gender += declensions.pop()
+    return gender
+
+
+def eclipse(word, html=False):
+    """
+http://www.nualeargais.ie/gnag/gram.htm?1dekl.htm
+    """
+    initial = word[0]
+    eclipses = {
+        'b': 'm',
+        'c': 'g',
+        'd': 'n',
+        'f': 'bh',
+        'g': 'n',
+        'p': 'b',
+        't': 'd',
+    }
+    if initial in eclipses:
+        if html:
+            return '<i>' + eclipses[initial] + '</i>' + word
+        else:
+            return eclipses[initial] + word
+    return word
+
+
+def lenite(word, html=False):
+    """
+http://www.nualeargais.ie/gnag/lenition.htm
+    """
+    if word[0] in 'bcdfgmpst':
+        if html:
+            return word[0] + '<i>h</i>' + word[1:]
+        else:
+            return word[0] + 'h' + word[1:]
+    return word
+
+
+def assign_plural_genitive(noun, html=True):
+    """
+Could scrape e.g. https://www.teanglann.ie/en/gram/teist
+but don't want to
+    """
+
+    ret = {}
+    mf = None
+    for subentries, subentry_labels in get_teanglann_subentries(noun):
+        first_line = subentries[0]
+        flt = clean_text(bs4_get_text(first_line), noun)
+        print(flt)
+        parts = {'nominative singular': noun}
+        part_names = ['nominative plural', 'genitive singular', 'genitive plural']
+        for i in range(len(part_names), 0, -1):
+            for cs in permutations(part_names, i):
+                ct = ' & '.join(cs)
+                if ct in flt:
+                    rhs = flt.split(ct)[1]
+                    rhs_words = re.split('[,;)(] *', rhs)
+                    d_word = rhs_words[0].lstrip()
+                    if d_word.startswith('-'):
+                        d_word = fill_in_dash(d_word, noun)
+                    for cp in cs:
+                        if cp not in parts:
+                            parts[cp] = d_word
+        if 'nominative plural' not in parts:
+            p = re.split('[,(] ?plural', flt)
+            if len(p) > 1:
+                rhs_words = re.split('[,;)(] *', p[1])
+                d_word = rhs_words[0].lstrip()
+                if d_word.startswith('-'):
+                    d_word = fill_in_dash(d_word, noun)
+                parts['nominative plural'] = d_word
+                if 'genitive plural' not in parts:
+                    parts['genitive plural'] = d_word
+        gender = assign_gender_declension(noun, first_line)
+        if gender:
+            ret['gender'] = gender
+        for k in parts:
+            if k in ret and ret[k] != parts[k]:
+                return {}  # different words? no agreement
+                manual_debug()
+        ret.update(parts)
+    for k, w in ret.items():
+        if k != 'gender':
+            ret[k] = apply_article(w, ret['gender'], k)
+    return ret
+
+
+def apply_article(word, gender, part_of_speech, html=True):
+    """
+http://nualeargais.ie/gnag/artikel.htm
+    """
+    preceding_s = word[0] == 's'
+    preceding_a_vowel = word[0] in 'aeiouáéíóú'
+    preceding_dt = word[0] in 'dt'
+    preceding_a_consonant = \
+        not preceding_s and \
+        not preceding_a_vowel and \
+        not preceding_dt
+    nf = gender.startswith('nf')
+    nm = gender.startswith('nm')
+    nominative = 'nominative' in part_of_speech
+    genitive = 'genitive' in part_of_speech
+    if 'plural' in part_of_speech:
+        ret = 'na '
+    elif nf and genitive:
+        ret = '<i>na</i> '
+    else:
+        ret = 'an '
+    if 'plural' in part_of_speech:
+        # no html needed here as same in both genders
+        if preceding_s:
+            ret += word
+        elif preceding_a_vowel:
+            if genitive:
+                ret += 'n-' + word
+            else:
+                ret += 'h' + word
+        elif genitive:
+            ret += eclipse(word, html=False)
+        else:
+            ret += word
+    else:
+        if preceding_dt:
+            ret += word
+        else:
+            if preceding_s and \
+               word[1] in 'aeiouáéíóúlnr' and (
+                    (nominative and nf) or
+                    (genitive and nm)):
+                ret += '<i>t</i>' + word
+            elif preceding_a_vowel and \
+                 nf and genitive:
+                ret += '<i>h</i>' + word
+            elif preceding_a_vowel and \
+                 nm and nominative:
+                ret += '<i>t</i>-' + word
+            elif preceding_a_consonant and (
+                    (nm and genitive) or
+                    (nf and nominative)):
+                ret += lenite(word, html=True)
+            else:
+                ret += word
+    if not html:
+        return ret.replace('<i>', '').replace('</i>', '')
+    return ret
+
+
 def assign_verbal_noun(verb):
     for subentries, subentry_labels in get_teanglann_subentries(verb):
         first_line = subentries[0]
@@ -365,12 +599,7 @@ def assign_verbal_noun(verb):
             elif 'verbal noun -' in flt:
                 suffix = flt.split('verbal noun -', 1)[1]
                 suffix = re.split('[\s,);]', suffix.lstrip())[0]
-                if suffix[0] == suffix[1]:
-                    # coinnigh (vn. -nneáil)  -> coinneáil
-                    vn = verb[:verb.rindex(suffix[:2])] + suffix
-                else:
-                    # éirigh (verbal noun -rí) -> éirí
-                    vn = verb[:verb.rindex(suffix[0])] + suffix
+                vn = fill_in_dash('-' + suffix, verb)
                 if get_verb_from_verbal_noun(vn) != verb:
                     vn_entries = [e for e in get_teanglann_subentries(vn)]
                     if len(vn_entries) == 1 and \
@@ -471,29 +700,8 @@ def get_teanglann_definition(word, return_raw=False, sort_by_foclóir=False):
             # 'thar': has 'thairis (m) thairsti (f)' and is not a noun
             pass
         elif first_line.find(title="feminine") or first_line.find(title="masculine"):
-            soup_fb = get_definition_soup(word, 'teanglann', lang='ga-fb')
-            entry_fb = soup_fb.find(class_='entry')
             types['Noun'] = True
-            if first_line.find(title="feminine"):
-                gender = 'nf'
-                k_lookup = 'bain'
-            elif first_line.find(title="masculine"):
-                gender = 'nm'
-                k_lookup = 'fir'
-            if entry_fb:
-                for subentry in entry_fb.find_all(class_='subentry'):
-                    # https://www.teanglann.ie/en/fb/trumpa - ignore trumpadóir
-                    subentry.extract()
-                noun_decs = entry_fb.find_all(
-                    string=re.compile(k_lookup + '[1-4]')
-                )
-                declensions = set()
-                for noun_dec in noun_decs:
-                    declensions.add(noun_dec.string.strip()[-1])
-                if len(declensions) > 1:
-                    manual_debug()
-                elif declensions:
-                    gender += declensions.pop()
+            gender = assign_gender_declension(word, first_line)
         if first_line.find(title="adverb"):
             types['Adverb'] = True
         if first_line.find(title="preposition"):
@@ -713,6 +921,17 @@ def clean_text(text, word):
     return text.lower().lstrip(')').rstrip('(')
 
 
+def fill_in_dash(suffix, word):
+    suffix = suffix.lstrip('-')
+    if suffix[0] == suffix[1]:
+        # coinnigh (vn. -nneáil)  -> coinneáil
+        modified_word = word[:word.rindex(suffix[:2])] + suffix
+    else:
+        # éirigh (verbal noun -rí) -> éirí
+        modified_word = word[:word.rindex(suffix[0])] + suffix
+    return modified_word
+
+
 def print_types(type_dict):
     bits = []
     for type_, val in type_dict.items():
@@ -743,6 +962,8 @@ if __name__ == '__main__':
         if 'Verb' in PoS and 'ransitive' in PoS and ' ' not in GA:
             print('ag ' + assign_verbal_noun(GA))
         print(EN)
+    elif True:
+        populate_genitive_verbal_noun(limit=500)
     elif False:
         find_teanglann_periphrases()
     elif False:

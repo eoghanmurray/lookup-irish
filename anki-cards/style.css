@@ -37,6 +37,27 @@ hr {
     padding-top: 110px;
 }
 
+.genitive-vn-container {
+    margin: 0;
+    padding: 0;
+    font-weight: normal;
+    color: grey;
+    margin-bottom: 1em;`
+}
+.genitive-vn-container i {
+   font-style: normal;
+}
+.genitive-vn-container .nf i {
+   color: #f6d;
+}
+.genitive-vn-container .nm i:not(.weak) {
+   color: darkblue;
+}
+.genitive-vn-container u {
+   /* an exception to some declension rule */
+   text-decoration-color: red;
+   border-bottom:  1px solid red;
+}
 .pronounce-container .columns {
     padding: 10px;
 }
