@@ -464,11 +464,18 @@ def assign_gender_declension(noun, first_line):
         k_lookup = 'fir'
     else:
         return None
+    search_entry = entry_fb
     if entry_fb:
         for subentry in entry_fb.find_all(class_='subentry'):
-            # https://www.teanglann.ie/en/fb/trumpa - ignore trumpadóir
-            subentry.extract()
-        noun_decs = entry_fb.find_all(
+            if bs4_get_text(subentry.find(class_='headword')) == noun:
+                # https://www.teanglann.ie/en/fb/cainteoir - main entry is 'caint'
+                search_entry = subentry
+                break
+            else:
+                # https://www.teanglann.ie/en/fb/trumpa - ignore trumpadóir
+                subentry.extract()
+    if search_entry:
+        noun_decs = search_entry.find_all(
             string=re.compile(k_lookup + '[1-4]')
         )
         declensions = set()
