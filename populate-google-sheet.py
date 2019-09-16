@@ -322,6 +322,9 @@ def get_definition_soup(word, dictionary, lang='ga', page_no=1):
         elif lang == 'ga-fb':
             # a separate dictionary rather than a separate language
             href += '/en/fb/' + word
+        elif lang == 'ga-gram':
+            # grammar page
+            href += '/en/gram/' + word
     elif dictionary == 'foclóir':
         href = 'https://www.focloir.ie'
         if lang == 'en':
@@ -487,7 +490,24 @@ def assign_gender_declension(noun, first_line):
         elif declensions:
             gender += declensions.pop()
     if len(gender) == 2:
-        gender = apply_declension_hints(noun, gender)
+        soup_gram = get_definition_soup(noun, 'teanglann', lang='ga-gram')
+        grams = soup_gram.find_all(class_='gram')
+        for gram in grams:
+            gender_prop = False
+            if gram.find(text='NOUN'):
+                if gender == 'nf':
+                    gender_prop = gram.find(text='FEMININE')
+                elif gender == 'nm':
+                    gender_prop = gram.find(text='MASCULINE')
+            if gender_prop:
+                dec_prop = gender_prop.\
+                    find_parent(class_='property').\
+                    find_next_sibling(class_='property')
+                if dec_prop:
+                    dec_text = bs4_get_text(dec_prop.find(class_='value')).strip()
+                    if dec_text.endswith('DECLENSION'):
+                        gender += dec_text[0]
+                        break
     return gender
 
 
