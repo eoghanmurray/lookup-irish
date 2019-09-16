@@ -536,13 +536,17 @@ but don't want to
                     rhs = flt.split(ct)[1]
                     rhs_words = re.split('[,;)(] *', rhs)
                     d_word = rhs_words[0].lstrip()
+                    if d_word.startswith('as substantive'):
+                        # e.g. smaoineamh
+                        # 'smaoinimh' is what we want (don't understand 'smaointe' as 'genitive singular as verbal noun')
+                        d_word = d_word[14:].lstrip()
                     if d_word.startswith('-'):
                         d_word = fill_in_dash(d_word, noun)
                     for cp in cs:
                         if cp not in parts:
                             parts[cp] = d_word
         if 'nominative plural' not in parts:
-            p = re.split('[,(] ?plural', flt)
+            p = re.split('[,(;] ?(?:plural|pl\.)', flt)
             if len(p) > 1:
                 rhs_words = re.split('[,;)(] *', p[1])
                 d_word = rhs_words[0].lstrip()
