@@ -1178,6 +1178,9 @@ if __name__ == '__main__':
         # get 'warp (textiles)'
         get_teanglann_definition('dlúth')
     elif False:
+        # TODO: get 'to illustrate'
+        get_teanglann_definition('maisigh')
+    elif False:
         # verb intransitive + transitive, with extra entry with intransitive verb only
         # expecting to get 'Verb - Transitive & Intransitive' back
         print(get_teanglann_definition('lonnaigh')[0])
