@@ -345,6 +345,7 @@ def get_definition_soup(word, dictionary, lang='ga', page_no=1):
         contents = codecs.open(local_path, 'r', encoding='utf8').read()
         soup = BeautifulSoup(contents, features='html5lib')
     else:
+        print('Downloading', href)
         page = requests.get(href, headers=headers)
         soup = BeautifulSoup(page.text, features='html5lib')
         # writing the soup rather than raw response as it converts to utf8
@@ -821,11 +822,12 @@ def get_verb_from_verbal_noun(word):
                     return line_text.strip()
 
 
-def get_teanglann_definition(word, return_raw=False, sort_by_foclóir=False):
+def get_teanglann_definition(word, return_raw=False, sort_by_foclóir=False, verbose=False):
 
     candidates = get_foclóir_candidates(word)
-    print()
-    print(f'{Back.YELLOW}{Fore.BLACK}{word}{Style.RESET_ALL} foclóir:', candidates)
+    if verbose:
+        print()
+        print(f'{Back.YELLOW}{Fore.BLACK}{word}{Style.RESET_ALL} foclóir:', candidates)
 
     parts_of_speech = OrderedDict()
     definitions = []
@@ -889,8 +891,9 @@ def get_teanglann_definition(word, return_raw=False, sort_by_foclóir=False):
                 else:
                     types['Verbal Noun'] = ' of ' + verb_name
 
-        print()
-        print(f'{Back.RED}{word}{Style.RESET_ALL}', print_types(types), gender)
+        if verbose:
+            print()
+            print(f'{Back.RED}{word}{Style.RESET_ALL}', print_types(types), gender)
         for label, subentry in zip(subentry_labels, subentries):
             transs = subentry.find_all(class_='trans')
             if len(transs) > 1 and (
@@ -919,7 +922,8 @@ def get_teanglann_definition(word, return_raw=False, sort_by_foclóir=False):
                 example_text = clean_text(example.get_text(), word)
                 formatted_text = formatted_text.replace(example_text, f'\n    {example_text}')
             if not transs:
-                print(f'{label}[{formatted_text}]')
+                if verbose:
+                    print(f'{label}[{formatted_text}]')
             else:
                 trans_text = clean_text(transs[0].get_text(), word)
                 maybe_to = ''
@@ -947,21 +951,25 @@ def get_teanglann_definition(word, return_raw=False, sort_by_foclóir=False):
                 definition = None
                 if defn:
                     definition = maybe_to + defn + first_trans_extra
-                    print(f'{label}{Fore.GREEN}{definition}{Style.RESET_ALL} [{formatted_text}]')
+                    if verbose:
+                        print(f'{label}{Fore.GREEN}{definition}{Style.RESET_ALL} [{formatted_text}]')
                 else:
                     for fcw in candidates:
                         if all(tgw.startswith(fcw + ' ') for tgw in trans_words):
                             rest = ' (' + ', '.join(tgw[len(fcw) + 1:] for tgw in trans_words) + ')'
-                            print(f'{label}{Fore.GREEN}{maybe_to}{fcw}{Fore.MAGENTA}{rest}{Style.RESET_ALL} [{formatted_text}]')
+                            if verbose:
+                                print(f'{label}{Fore.GREEN}{maybe_to}{fcw}{Fore.MAGENTA}{rest}{Style.RESET_ALL} [{formatted_text}]')
                             definition = maybe_to + fcw + rest
                             break
                         elif all(tgw.endswith(' ' + fcw) for tgw in trans_words):
                             rest = '(' + ', '.join(tgw[:-len(fcw) - 1] for tgw in trans_words) + ') '
-                            print(f'{label}{Fore.GREEN}{maybe_to}{Fore.MAGENTA}{rest}{Fore.GREEN}{fcw}{Style.RESET_ALL} [{formatted_text}]')
+                            if verbose:
+                                print(f'{label}{Fore.GREEN}{maybe_to}{Fore.MAGENTA}{rest}{Fore.GREEN}{fcw}{Style.RESET_ALL} [{formatted_text}]')
                             definition = maybe_to + rest + fcw
                             break
-                    else:
-                        print(f'{label}[{formatted_text}]')
+                    else:  # no break - for
+                        if verbose:
+                            print(f'{label}[{formatted_text}]')
                 if definition and definition not in definitions:
                     # could filter/rearrange existing definitions here
                     if 'Prefix' in types:
@@ -1096,7 +1104,7 @@ def manual_debug():
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         GA = sys.argv[-1]
-        PoS, EN, Gender = get_teanglann_definition(GA)
+        PoS, EN, Gender = get_teanglann_definition(GA, verbose=True)
         print()
         print(PoS, Gender)
         if 'Verb' in PoS and 'ransitive' in PoS and ' ' not in GA:
