@@ -72,7 +72,7 @@ def get_range(sheet):
     if not values:
         return False
     assert ' '.join(values[0]) == FIRST_ROW_SIG
-    for v in values:
+    for v in values[1:]:
         v_ext = (v + [''] * len(values[0]))[:len(values[0])]
         yield RowTup(*v_ext)
 
