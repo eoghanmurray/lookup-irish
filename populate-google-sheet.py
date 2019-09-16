@@ -485,6 +485,8 @@ def assign_gender_declension(noun, first_line):
             manual_debug()
         elif declensions:
             gender += declensions.pop()
+    if len(gender) == 2:
+        gender = apply_declension_hints(noun, gender)
     return gender
 
 
@@ -570,6 +572,7 @@ but don't want to
                 return {}  # different words? no agreement
                 manual_debug()
         ret.update(parts)
+    apply_declension_hints(ret['nominative singular'], ret['gender'], ret)
     for k, w in ret.items():
         if k != 'gender':
             ret[k] = apply_article(w, ret['gender'], k)
@@ -634,6 +637,83 @@ http://nualeargais.ie/gnag/artikel.htm
     if not html:
         return ret.replace('<i>', '').replace('</i>', '')
     return ret
+
+
+def apply_declension_hints(singular, actual_gender, wd=None):
+    """
+http://nualeargais.ie/foghlaim/nouns.php?teanga=
+    """
+    declension_guesser = [
+        ('nf4', ['e', 'í']),   # weak indicators of feminine, only works for 'abstract nouns'?  # TODO: test
+        ('nm4', ['ín']),
+        ('nm4', ['a', 'i', 'o', 'u', 'á', 'é', 'ó', 'ú']), # TODO: don't know whether to use these to highlight masculine
+        ('nf3', ['úil', 'ail', 'cht', 'irt', 'úint', 'áint']),
+        ('nm3', ['éir', 'eoir', 'óir', 'úir', 'aeir']),  # profession
+        ('nf2',  ['eog', 'óg', 'lann']),
+        ('3', ['áil', 'íl', 'aíl']),  # could be m or f  http://nualeargais.ie/gnag/3dekl.htm
+    ]
+    exception_explanation = None
+    found = False
+    for dec, endings in declension_guesser:
+        for ending in endings:
+            if singular.endswith(ending):
+                if dec in '12345' and actual_gender.endswith(dec):
+                    # adhmáil is 3rd declension but ending
+                    # doesn't indicate masculine/feminine
+                    pass
+                elif actual_gender != dec:
+                    # an exception?
+                    manual_debug()
+                    if dec == 'nf4':
+                        exception_explanation = 'Not an abstract noun?'
+                    if dec == 'nf3' and actual_gender == 'nm3':
+                        # e.g. gnólacht, is nm3, should be nf3 according to 'cht' ending
+                        pass
+                elif wd:
+                    wd['nominative singular'] = singular[:-len(ending)] + '<i>' + singular[-len(ending):] + '</i>'
+                found = True
+                break
+    vowels = 'aáeéiíoóuú'
+    if not found:
+        if singular[-1] in vowels:
+            manual_debug()
+        pos = -2
+        while singular[pos] not in vowels:
+            pos -= 1
+        bs = {
+            ('broad', 'nm1'): 'aouáóú',
+            ('slender', 'nf2'): 'eiéí',
+        }
+        found = False
+        for (broad_slender, dec), bsv in bs.items():
+            if singular[pos] in bsv:
+                # slender consonant
+                if len(actual_gender) == 2 and dec.startswith(actual_gender):
+                    # I guess teanglann assumes we know it's nf1/nm1
+                    if not wd:
+                        return dec
+                    else:
+                        wd['gender'] = dec
+                elif actual_gender != dec:
+                    if actual_gender == 'nf2':
+                        # fails for beach, bos, scornach which are nf2
+                        # http://nualeargais.ie/gnag/2dekl.htm
+                        # 'end in slender or broad consonants'
+                        pass
+                    else:
+                        manual_debug()
+                        exception_explanation = f'not a {broad_slender} consonant'
+                elif wd:
+                    if actual_gender == 'nm1':
+                        # don't highlight a broad consonant for nm1 as
+                        # broad consonants are also in nf2
+                        pass
+                    elif actual_gender == 'nf2':
+                        wd['nominative singular'] = singular[:pos] + '<i>' + singular[pos] + '</i>' + singular[pos + 1:]
+                found = True
+        if not found:
+            manual_debug()
+            pass
 
 
 def assign_verbal_noun(verb):
