@@ -534,8 +534,14 @@ but don't want to
     mf = None
     for subentries, subentry_labels in get_teanglann_subentries(noun):
         first_line = subentries[0]
+        if first_line.find(title="transitive verb") or \
+           first_line.find(title="intransitive verb") or \
+           first_line.find(title="and intransitive"):
+            # don't get confused by 'leibhéal' as a transitive verb
+            # (dunno what it means to that there's a 'genitive singular'
+            # leibhéalta)
+            continue
         flt = clean_text(bs4_get_text(first_line), noun)
-        print(flt)
         parts = {'nominative singular': noun}
         part_names = ['nominative plural', 'genitive singular', 'genitive plural']
         for i in range(len(part_names), 0, -1):
