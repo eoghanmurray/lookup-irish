@@ -766,6 +766,9 @@ def assign_verbal_noun(verb):
                        bs4_get_text(vn_entries[0][0][0]).rstrip('123456789. ').replace(' ', '') == f'{vn}:{verb}':
                         # these ones ok and just link back directly
                         pass
+                    elif vn in ['áirithiú', 'brostú', 'eachtraí']:
+                        # no entry
+                        pass
                     else:
                         manual_debug()
                     # we haven't done it right?
@@ -819,7 +822,11 @@ def assign_verbal_noun(verb):
     if get_verb_from_verbal_noun(verb + 'eadh') == verb:
         # gets 'croith'
         return verb + 'eadh'
-    if verb != 'tosnaigh':
+    if verb not in [
+            'tosnaigh', 'réigh',
+            'áil',  # literary use as a verb
+            'cis',
+    ]:
         manual_debug()
     pass
 
