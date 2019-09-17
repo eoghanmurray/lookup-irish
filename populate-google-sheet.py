@@ -419,19 +419,17 @@ def get_teanglann_subentries(word):
                         rev.append(r)
                     for r in reversed(rev):
                         subentries[-1].append(r)
-                else:
-                    pre, post = node_text.rsplit(f'{n}.', 1)
-                    if pre.strip():
-                        subentries[-1].append(pre.strip())
+                pre, post = node_text.rsplit(f'{n}.', 1)
+                if pre.strip():
+                    subentries[-1].append(pre.strip())
                 subentries.append(soup.new_tag('div'))
                 subentry_labels.append(f'{n}. ')
                 nxi = 0
+                if post.strip():
+                    subentries[-1].append(post.strip())
                 if as_subnode:
                     for r in as_subnode.next_siblings:
                         subentries[-1].append(r)
-                else:
-                    if post.strip():
-                        subentries[-1].append(post.strip())
                 n += 1
             elif (len(subentries) > 1  # we've actually got at least a '1.' already
                    and (
@@ -1208,6 +1206,9 @@ if __name__ == '__main__':
     elif False:
         # TODO: get 'to illustrate'
         get_teanglann_definition('maisigh')
+    elif False:
+        # 'na gleonna' for plural
+        assign_plural_genitive('gleo')
     elif False:
         # verb intransitive + transitive, with extra entry with intransitive verb only
         # expecting to get 'Verb - Transitive & Intransitive' back
