@@ -1087,9 +1087,13 @@ def clean_text(text, word):
     return text.lower().lstrip(')').rstrip('(')
 
 
-def fill_in_dash(suffix, word):
-    suffix = suffix.lstrip('-')
-    if suffix[0] == suffix[1]:
+def fill_in_dash(dash_suffix, word):
+    suffix = dash_suffix.lstrip('-')
+    if suffix[0] not in word:
+        if word + suffix != 'cosantóirí':
+            raise Exception(f'Bad suffix in teanglann? {word} {dash_suffix}')
+        modified_word = word + suffix
+    elif suffix[0] == suffix[1]:
         # coinnigh (vn. -nneáil)  -> coinneáil
         modified_word = word[:word.rindex(suffix[:2])] + suffix
     else:
