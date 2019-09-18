@@ -195,8 +195,14 @@ def populate_genitive_verbal_noun(limit=-1, refresh=True):
                     if len(declensions) == 5:
                         GenitiveVN += f'<div class="{Gender[:2]} d{Gender[2:]}">'
                         GenitiveVN += declensions['nominative singular'] + '/' + declensions['nominative plural']
-                        GenitiveVN += '<br>'
+                        GenitiveVN += '<div style="font-size:0.6em">' + declensions['gender'] + '</div>'
                         GenitiveVN += declensions['genitive singular'] + '/' + declensions['genitive plural']
+                        GenitiveVN += '</div>'
+                    elif 'nominative singular' in declensions and 'genitive singular' in declensions:
+                        GenitiveVN += f'<div class="{Gender[:2]} d{Gender[2:]}">'
+                        GenitiveVN += declensions['nominative singular']
+                        GenitiveVN += '<div style="font-size:0.6em">' + declensions['gender'] + '</div>'
+                        GenitiveVN += declensions['genitive singular']
                         GenitiveVN += '</div>'
                 if 'Verb' in PoS and 'ransitive' in PoS and ' ' and 'Verb' in row.PoS and 'ransitive' in row.PoS and ' '  not in row.GA:
                     if GenitiveVN:
