@@ -26,7 +26,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SPREADSHEET_ID = '1kiZlZp8weyILstvtL0PfIQkQGzuG7oZfP8n_qkMFAWo'
 RANGE = '6450-most-frequent-irish-words!A1:G'
 
-FIRST_ROW_SIG = 'AUTO GA PoS EN Gender Tags GenitiveVN'
+FIRST_ROW_SIG = 'AUTO GA PoS EN Gender GenitiveVN Tags'
 COLUMN_KEY = {}
 alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 for col, letter in zip(FIRST_ROW_SIG.split(' '), alphabet):
