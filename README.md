@@ -18,6 +18,13 @@ There's a verbose mode also, that prints more info:
 ![color screenshot of output of './lookup_irish.py -v glór'](verbose.png?raw=true)
 
 
+Features
+---
+
+Makes a cache of all webpages downloaded for faster re-lookup
+
+[irish_lang.py](irish_lang.py) has some handy functions for mutating words (lenite/eclipse), applying articles according to gender and part-of-speech rules ('fuinneog' -> 'an fhuinneog'), and applying HTML hints for masculine/feminine (for use in e.g. flashcards).
+
 Requirements & Installation
 ---
 
