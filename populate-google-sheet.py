@@ -97,7 +97,7 @@ def populate_empty(refresh=True, limit=15):
         values = []
         range_start = None
         for n, row in enumerate(rows):
-            cell_no = n + 1  # 1 for 0 index
+            cell_no = n + 2  # +1 for 0 index, +1 as we are skipping header
             insert_now = False
             if row.GA and (
                     not row.EN or
@@ -140,7 +140,7 @@ def populate_pos_gender(limit=-1):
         values = []
         range_start = None
         for n, row in enumerate(rows):
-            cell_no = n + 1  # 1 for 0 index
+            cell_no = n + 2  # +1 for 0 index, +1 as we are skipping header
             insert_now = False
             if row.GA and (
                     not row.Pos
@@ -182,7 +182,7 @@ def populate_genitive_verbal_noun(limit=-1, refresh=True):
         values = []
         range_start = None
         for n, row in enumerate(rows):
-            cell_no = n + 1  # 1 for 0 index
+            cell_no = n + 2  # +1 for 0 index, +1 as we are skipping header
             insert_now = cell_no % 600 == 0
             if row.GA and (
                     not row.GenitiveVN or
@@ -243,7 +243,7 @@ Populate the AUTO column to compare against existing manual entries
         count = 0
         from io import StringIO
         for n, row in enumerate(rows):
-            cell_no = n + 1  # 1 for 0 index
+            cell_no = n + 2  # +1 for 0 index, +1 as we are skipping header
             if row.AUTO != '' and not refresh:
                 continue
             if not row.EN or row.EN.endswith('[AUTO]'):
@@ -294,7 +294,7 @@ Maybe put these as a (smaller) second line below the GA on front of card
         count = 0
         from io import StringIO
         for n, row in enumerate(rows):
-            cell_no = n + 1  # 1 for 0 index
+            cell_no = n + 2  # +1 for 0 index, +1 as we are skipping header
             if 'Verb' in row.PoS and 'ransitive' in row.PoS and ' ' not in row.GA:
                 vn = assign_verbal_noun(row.GA)
                 if not vn:
