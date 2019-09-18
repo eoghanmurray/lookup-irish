@@ -1,0 +1,612 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+from download import get_definition_soup, bs4_get_text
+from random import shuffle
+import re
+import sys
+from colorama import Fore, Back, Style
+from collections import OrderedDict
+from itertools import permutations
+
+from irish_lang import apply_declension_hints, apply_article
+from focloir import get_foclóir_candidates, foclóir_score_definition
+
+
+def get_teanglann_definition(
+        word, return_raw=False, sort_by_foclóir=False, verbose=False):
+
+    candidates = get_foclóir_candidates(word)
+    if verbose:
+        print()
+        print(f'{Back.YELLOW}{Fore.BLACK}{word}'
+              f'{Style.RESET_ALL} foclóir:', candidates)
+
+    parts_of_speech = OrderedDict()
+    definitions = []
+    raw_definitions = []
+    genders = []
+
+    for subentries, subentry_labels in get_teanglann_subentries(word):
+        first_line = subentries[0]
+        gender = None
+        types = OrderedDict()  # using as ordered set
+        if first_line.find(title="feminine") and \
+           first_line.find(title="masculine"):
+            # 'thar': has 'thairis (m) thairsti (f)' and is not a noun
+            pass
+        elif (first_line.find(title="feminine") or
+              first_line.find(title="masculine")):
+            types['Noun'] = True
+            gender = assign_gender_declension(word, first_line)
+        if first_line.find(title="adverb"):
+            types['Adverb'] = True
+        if first_line.find(title="preposition"):
+            types['Preposition'] = True
+        if first_line.find(title="adjective"):
+            types['Adjective'] = True
+            gender = 'a'
+            dec = first_line.find(title="adjective").next_sibling
+            # to check: think it only goes up to a3
+            if dec and dec.strip().strip('.') in ['1', '2', '3', '4']:
+                gender += dec.strip().strip('.')
+            else:
+                soup_fb = get_definition_soup(word, 'teanglann', lang='ga-fb')
+                entry_fb = soup_fb.find(class_='entry')
+                if soup_fb.find(text='aid3'):
+                    gender += '3'
+                elif soup_fb.find(text='aid2'):
+                    gender += '2'
+                elif soup_fb.find(text='aid1'):
+                    gender += '1'
+                elif not soup_fb.find(text='aid'):
+                    # 'thar' spurious adj. in following:
+                    # ' of <span title="adjective">a</span> general nature'
+                    del types['Adjective']
+                    gender = None
+        if first_line.find(title="transitive verb"):
+            if 'Verb' not in types:
+                types['Verb'] = OrderedDict()
+            types['Verb']['Transitive'] = True
+        if first_line.find(title="intransitive verb") or \
+           first_line.find(title="and intransitive"):
+            if 'Verb' not in types:
+                types['Verb'] = OrderedDict()
+            types['Verb']['Intransitive'] = True
+        if first_line.find(title="conjunction"):
+            types['Conjugation'] = True
+        if first_line.find(title="prefix"):
+            types['Prefix'] = True
+
+        for subentry in subentries:
+            raw_text = clean_text(' '.join(subentry.stripped_strings), word)
+            if raw_text.startswith('verbal noun') and ' of ' in raw_text:
+                verb_name = raw_text.split(' of ', 1)[1]
+                verb_name = verb_name.strip().rstrip(' 123456789')
+                if verb_name == word:
+                    types['Verbal Noun'] = True
+                else:
+                    types['Verbal Noun'] = ' of ' + verb_name
+
+        if verbose:
+            print()
+            print(f'{Back.RED}{word}'
+                  f'{Style.RESET_ALL}', print_types(types), gender)
+        for label, subentry in zip(subentry_labels, subentries):
+            transs = subentry.find_all(class_='trans')
+            if len(transs) > 1 and (
+                    (bs4_get_text(transs[0]).lstrip().startswith('(') and
+                     bs4_get_text(transs[0]).rstrip().endswith(')'))
+                    or
+                    (
+                        bs4_get_text(
+                            transs[0].previous_sibling
+                        ).rstrip().endswith('(')
+                        and bs4_get_text(
+                            transs[0].next_sibling
+                        ).lstrip().startswith(')')
+                    )
+            ):
+                transs = transs[1:]
+            raw_text = clean_text(' '.join(subentry.stripped_strings), word)
+            first_trans_extra = ''
+            if transs and transs[0].previous_sibling and \
+               transs[0].previous_sibling.string and \
+               transs[0].previous_sibling.string.strip() == ':' and \
+               transs[0].previous_sibling.previous_sibling and \
+               transs[0].previous_sibling.previous_sibling.find(title=True):
+                # important qualifiers like military: textile: etc.
+                first_trans_extra = ' (' + transs[0].previous_sibling.\
+                    previous_sibling.find(title=True)['title'].lower() + ')'
+            for trans in transs:
+                trans.insert_before(Fore.YELLOW)
+                trans.insert_after(Style.RESET_ALL)
+            formatted_text = ' '.join(subentry.stripped_strings)
+            formatted_text = clean_text(formatted_text, word)
+            for example in subentry.find_all(class_='example'):
+                example_text = clean_text(example.get_text(), word)
+                formatted_text = formatted_text.replace(
+                    example_text,
+                    f'\n    {example_text}'
+                )
+            if not transs:
+                if verbose:
+                    print(f'{label}[{formatted_text}]')
+            else:
+                trans_text = clean_text(transs[0].get_text(), word)
+                maybe_to = ''
+                if 'Verb' in types:
+                    maybe_to = 'to '
+                trans_words = re.split('[,;] *', trans_text)
+                defn_words = [
+                    tgw for tgw in trans_words
+                    if re.sub(r'\s*\(.*?\)\s*', '', tgw) in candidates
+                ]
+                if sort_by_foclóir and defn_words:
+                    foclóir_scores = []
+                    for defn_word in defn_words:
+                        fsd = foclóir_score_definition(defn_word, word)
+                        foclóir_scores.append((fsd, defn_word))
+                    foclóir_scores.sort()
+                    foclóir_min_score = min(foclóir_scores)[0]
+                    if False:
+                        # debug
+                        defn = '/'.join([
+                            fs[1] + f' ({fs[0]})'
+                            for fs in foclóir_scores
+                        ])
+                    else:
+                        defn = '/'.join([fs[1] for fs in foclóir_scores])
+                else:
+                    defn = '/'.join(defn_words)
+                if len(transs) > 1:
+                    formatted_text = f'X{len(transs)} {formatted_text}'
+                raw_definitions.append(f'[{trans_text}]')
+                definition = None
+                if defn:
+                    definition = maybe_to + defn + first_trans_extra
+                    if verbose:
+                        print(f'{label}{Fore.GREEN}{definition}'
+                              f'{Style.RESET_ALL} [{formatted_text}]')
+                else:
+                    for fcw in candidates:
+                        if all(tgw.startswith(fcw + ' ')
+                               for tgw in trans_words):
+                            rest = ' (' + ', '.join(
+                                tgw[len(fcw) + 1:] for tgw in trans_words
+                            ) + ')'
+                            if verbose:
+                                print(f'{label}{Fore.GREEN}{maybe_to}{fcw}'
+                                      f'{Fore.MAGENTA}{rest}'
+                                      f'{Style.RESET_ALL} [{formatted_text}]')
+                            definition = maybe_to + fcw + rest
+                            break
+                        elif all(tgw.endswith(' ' + fcw)
+                                 for tgw in trans_words):
+                            rest = '(' + ', '.join(
+                                tgw[:-len(fcw) - 1] for tgw in trans_words
+                            ) + ') '
+                            if verbose:
+                                print(f'{label}{Fore.GREEN}{maybe_to}'
+                                      f'{Fore.MAGENTA}{rest}{Fore.GREEN}{fcw}'
+                                      f'{Style.RESET_ALL} [{formatted_text}]')
+                            definition = maybe_to + rest + fcw
+                            break
+                    else:  # no break - for
+                        if verbose:
+                            print(f'{label}[{formatted_text}]')
+                if definition and definition not in definitions:
+                    # could filter/rearrange existing definitions here
+                    if 'Prefix' in types:
+                        definition = definition + ' (as prefix)'
+                    if sort_by_foclóir:
+                        if 'Verb' in types:
+                            # put all verbs at the end (could do better)
+                            definitions.append((
+                                foclóir_min_score + 10,
+                                definition
+                            ))
+                        else:
+                            definitions.append((foclóir_min_score, definition))
+                    else:
+                        definitions.append(definition)
+
+        if gender and gender not in genders:
+            genders.append(gender)
+        for k, v in types.items():
+            if isinstance(v, dict) and k in parts_of_speech:
+                parts_of_speech[k].update(v)
+            else:
+                parts_of_speech[k] = v
+    if return_raw == 'force' or \
+       (not definitions and return_raw):
+        definitions = raw_definitions
+    elif sort_by_foclóir:
+        definitions.sort()
+        definitions = [d[1] for d in definitions]
+    return (
+        print_types(parts_of_speech),
+        '\n'.join(definitions),
+        '\n'.join(genders)
+    )
+
+
+def get_teanglann_subentries(word):
+    soup = get_definition_soup(word, 'teanglann', lang='ga')
+
+    for entry in soup.find_all(class_='entry'):
+
+        expand_abbreviations(entry)
+        if not entry.text.strip().lower().startswith(word.lower()):
+            # https://www.teanglann.ie/en/fgb/i%20measc
+            # gives results for 'imeasc' not 'i measc'
+            continue
+
+        subentries = [soup.new_tag('div')]
+        subentry_labels = ['']  # first line, may contain a 'main' entry
+        n = 1
+        nxs = 'abcdefghijklmnopqrstuvwxyz'
+        nxi = 0
+        for node in entry.contents[:]:
+            node_text = bs4_get_text(node)
+            if f'{n}.' in re.sub(rf'adjective\s*{1}.', '', node_text):
+                as_subnode = node.find(text=re.compile(rf'\s+{n}.\s+'))
+                if as_subnode:
+                    rev = []
+                    for r in as_subnode.previous_siblings:
+                        rev.append(r)
+                    for r in reversed(rev):
+                        subentries[-1].append(r)
+                pre, post = node_text.rsplit(f'{n}.', 1)
+                if pre.strip():
+                    subentries[-1].append(pre.strip())
+                subentries.append(soup.new_tag('div'))
+                subentry_labels.append(f'{n}. ')
+                nxi = 0
+                if post.strip():
+                    subentries[-1].append(post.strip())
+                if as_subnode:
+                    for r in as_subnode.next_siblings:
+                        subentries[-1].append(r)
+                n += 1
+            elif (len(subentries) > 1  # we've got at least a '1.' already
+                  and (
+                      f'({nxs[nxi]})' in node_text
+                      or (
+                          f'{nxs[nxi]}' == node_text.strip() and
+                          node.next_sibling.string.strip() == ')' and
+                          subentries[-1].get_text().strip().endswith('(')
+                      ))):
+                pre, post = node_text.split(f'{nxs[nxi]}', 1)
+                if pre.strip().rstrip('('):
+                    subentries[-1].append(pre.strip())
+                if subentries[-1].get_text().strip().rstrip('('):
+                    subentries.append(soup.new_tag('div'))
+                    subentry_labels.append(f'{n-1}.({nxs[nxi]}) ')
+                else:
+                    subentry_labels[-1] = f'{n-1}.({nxs[nxi]}) '
+                if post.strip().lstrip(')'):
+                    subentries[-1].append(post.strip())
+                nxi += 1
+            else:
+                subentries[-1].append(node)
+        yield subentries, subentry_labels
+
+
+def assign_gender_declension(noun, first_line):
+    soup_fb = get_definition_soup(noun, 'teanglann', lang='ga-fb')
+    entry_fb = soup_fb.find(class_='entry')
+    if first_line.find(title="feminine"):
+        gender = 'nf'
+        k_lookup = 'bain'
+    elif first_line.find(title="masculine"):
+        gender = 'nm'
+        k_lookup = 'fir'
+    else:
+        return None
+    search_entry = entry_fb
+    if entry_fb:
+        for subentry in entry_fb.find_all(class_='subentry'):
+            if bs4_get_text(subentry.find(class_='headword')) == noun:
+                # https://www.teanglann.ie/en/fb/cainteoir
+                # main entry is 'caint'
+                search_entry = subentry
+                break
+            else:
+                # https://www.teanglann.ie/en/fb/trumpa - ignore trumpadóir
+                subentry.extract()
+    if search_entry:
+        noun_decs = search_entry.find_all(
+            string=re.compile(k_lookup + '[1-4]')
+        )
+        declensions = set()
+        for noun_dec in noun_decs:
+            declensions.add(noun_dec.string.strip()[-1])
+        if len(declensions) > 1:
+            manual_debug()
+        elif declensions:
+            gender += declensions.pop()
+    if len(gender) == 2:
+        soup_gram = get_definition_soup(noun, 'teanglann', lang='ga-gram')
+        grams = soup_gram.find_all(class_='gram')
+        for gram in grams:
+            gender_prop = False
+            if gram.find(text='NOUN'):
+                if gender == 'nf':
+                    gender_prop = gram.find(text='FEMININE')
+                elif gender == 'nm':
+                    gender_prop = gram.find(text='MASCULINE')
+            if gender_prop:
+                dec_prop = gender_prop.\
+                    find_parent(class_='property').\
+                    find_next_sibling(class_='property')
+                if dec_prop:
+                    dec_text = bs4_get_text(dec_prop.find(class_='value'))
+                    dec_text = dec_text.strip()
+                    if dec_text.endswith('DECLENSION'):
+                        gender += dec_text[0]
+                        break
+    return gender
+
+
+def assign_plural_genitive(noun, html=True):
+    """
+Could scrape e.g. https://www.teanglann.ie/en/gram/teist
+but don't want to
+    """
+
+    ret = {}
+    for subentries, subentry_labels in get_teanglann_subentries(noun):
+        first_line = subentries[0]
+        if first_line.find(title="transitive verb") or \
+           first_line.find(title="intransitive verb") or \
+           first_line.find(title="and intransitive"):
+            # don't get confused by 'leibhéal' as a transitive verb
+            # (dunno what it means to that there's a 'genitive singular'
+            # leibhéalta)
+            continue
+        flt = clean_text(bs4_get_text(first_line), noun)
+        parts = {'nominative singular': noun}
+        part_names = [
+            'nominative plural',
+            'genitive singular',
+            'genitive plural'
+        ]
+        for i in range(len(part_names), 0, -1):
+            for cs in permutations(part_names, i):
+                ct = ' & '.join(cs)
+                if ct in flt:
+                    rhs = flt.split(ct)[1]
+                    rhs_words = re.split('[,;)(] *', rhs)
+                    d_word = rhs_words[0].lstrip()
+                    if d_word.startswith('as substantive'):
+                        # e.g. smaoineamh
+                        # 'smaoinimh' is what we want (don't understand
+                        # 'smaointe' as 'genitive singular as verbal noun')
+                        d_word = d_word[14:].lstrip()
+                    if d_word.startswith('-'):
+                        d_word = fill_in_dash(d_word, noun)
+                    for cp in cs:
+                        if cp not in parts:
+                            parts[cp] = d_word
+        if 'nominative plural' not in parts:
+            p = re.split(r'[,(;] ?(?:plural|pl\.)', flt)
+            if len(p) > 1:
+                rhs_words = re.split('[,;)(] *', p[1])
+                d_word = rhs_words[0].lstrip()
+                if d_word.startswith('-'):
+                    d_word = fill_in_dash(d_word, noun)
+                parts['nominative plural'] = d_word
+                if 'genitive plural' not in parts:
+                    parts['genitive plural'] = d_word
+        gender = assign_gender_declension(noun, first_line)
+        if gender:
+            ret['gender'] = gender
+        for k in parts:
+            if k in ret and ret[k] != parts[k]:
+                return {}  # different words? no agreement
+                manual_debug()
+        ret.update(parts)
+    if 'gender' not in ret:
+        return {}  # not a noun
+    apply_declension_hints(ret['nominative singular'], ret['gender'], ret)
+    for k, w in ret.items():
+        if k != 'gender':
+            ret[k] = apply_article(w, ret['gender'], k)
+    return ret
+
+
+def assign_verbal_noun(verb):
+    for subentries, subentry_labels in get_teanglann_subentries(verb):
+        first_line = subentries[0]
+        if first_line.find(title="transitive verb") or \
+           first_line.find(title="intransitive verb") or \
+           first_line.find(title="and intransitive"):
+            flt = bs4_get_text(first_line)
+            flt = re.sub(r'\s\s+', ' ', flt)  # dóigh: newlines
+            vn = None
+            if 'verbal noun ~' in flt:
+                vn = flt.split('verbal noun ~', 1)[1]
+                vn = vn.replace('feminine', '')  # pleanáil poor spacing
+                vn = vn.replace('masculine', '')  # ditto
+                vn = verb + vn
+            elif 'verbal noun -' in flt:
+                suffix = flt.split('verbal noun -', 1)[1]
+                suffix = re.split(r'[\s,);]', suffix.lstrip())[0]
+                vn = fill_in_dash('-' + suffix, verb)
+            else:
+                for good_split in [
+                        '(verbal noun ',
+                        ', verbal noun ',
+                        '; verbal noun ',
+                        ]:
+                    if good_split in flt:
+                        vn = flt.split(good_split, 1)[1]
+            if vn:
+                vn = re.split(r'[\s,);]', vn.lstrip())[0]
+                return vn
+            vni = first_line.find(title='verbal noun')
+            if vni:
+                vn = bs4_get_text(vni.next_sibling)
+                vn = vn.strip()
+                if ' ' in vn:
+                    manual_debug()
+                if 'of' in vn:
+                    manual_debug()
+                if '~' not in vn:
+                    manual_debug()
+                else:
+                    return vn.replace('~', verb)
+            pass
+        else:
+            if verb_from_vn(verb) == verb:
+                # self verbal noun, e.g. bruith
+                return verb
+
+    soup = get_definition_soup(verb, 'teanglann', lang='ga')  # same page
+    rm = soup.find(text=re.compile(r"\s*RELATED\s+MATCHES\s*"))
+    if rm:
+        for link in rm.parent.parent.find_all('a'):
+            related_word = bs4_get_text(link).strip(' »')
+            if verb_from_vn(related_word) == verb:
+                return related_word
+    if verb.endswith('aigh') and verb_from_vn(verb[:-4] + 'ú') == verb:
+        # aontaigh / aontú
+        return verb[:-4] + 'ú'
+    if verb.endswith('igh') and verb_from_vn(verb[:-2] + 'ú') == verb:
+        # oibrigh / oibriú
+        return verb[:-2] + 'ú'
+    if verb_from_vn(verb + 'adh') == verb:
+        # gets 'cor'
+        return verb + 'adh'
+    if verb_from_vn(verb + 'eadh') == verb:
+        # gets 'croith'
+        return verb + 'eadh'
+
+    if verb == 'tosnaigh':
+        # https://www.gaois.ie/crp/ga/?txt=tosn%C3%BA&lang=ga&SearchMode=narrow
+        return 'tosnú'  # rather than 'tosú'
+    if verb not in [
+            'réigh',  # is it réiteach also?
+            'áil',  # literary use as a verb
+            'cis',
+            'gad',
+            'fainic',  # used imperatively only
+            'batráil',
+    ]:
+        print(f'Warning: No verbal noun found for {verb}')
+    pass
+
+
+def verb_from_vn(word):
+    for subentries, subentry_labels in get_teanglann_subentries(word):
+        first_line = subentries[0]
+        if first_line.find(title="masculine") or \
+           first_line.find(title="feminine"):
+            # 'coradh' has it in first line (missing '1.') so can't do
+            # subentries[1:]
+            # although afraid that it shouldn't be in a heading
+            for line in subentries:
+                vn = line.find(title='verbal noun')
+                if vn and bs4_get_text(vn.next_sibling).strip() == 'of':
+                    line_text = bs4_get_text(line)
+                    line_text = line_text.split('of', 1)[-1].strip()
+                    line_text = line_text.split(' ')[0].rstrip(' .123456789')
+                    return line_text.strip()
+
+
+def find_teanglann_periphrases():
+    """
+total words: 53,677
+323 multi-word entries:
+...
+téigh trí
+thar ceann
+thar n-ais
+tit amach
+tit ar
+tit chuig
+tit do
+tit faoi
+...
+    """
+    alphabet = list('abcdefghijklmnopqrstuvwxyz')
+    word_count = 0
+    shuffle(alphabet)
+    for letter in alphabet:
+        soup = get_definition_soup('_' + letter, 'teanglann')
+        abc = soup.find(class_='abcListings')
+        for word_item in abc.find_all(class_="abcItem"):
+            potential_periphrase = bs4_get_text(word_item.find('a'))
+            if ' ' in potential_periphrase:
+                print(potential_periphrase)
+            else:
+                word_count += 1
+    print('total words:', word_count)
+
+
+def expand_abbreviations(soup):
+    for abbr in soup.find_all(title=True):
+        abbr_title = abbr['title'].strip()
+        if not abbr.string:
+            # <span class="fgb tip" title="Electrical Engineering"><span
+            # class="fgb tip" title="Electricity; electrical">El</span>.<span
+            # class="fgb tip" title="Engineering">E</span></span>
+            abbr.string = abbr_title
+        else:
+            abbr.string.replace_with(abbr_title)
+        next_sib = abbr.next_sibling
+        if next_sib and next_sib.string.lstrip().startswith('.'):
+            abbr.next_sibling.string.\
+                replace_with(abbr.next_sibling.string.lstrip()[1:])
+    return soup
+
+
+def print_types(type_dict):
+    bits = []
+    for type_, val in type_dict.items():
+        if val is True:
+            bit = type_
+        elif isinstance(val, dict):
+            if not val:
+                continue  # wouldn't be necessary with an OrderedDefaultDict
+            bit = type_ + ' - ' + ' & '.join(val.keys())
+        else:
+            bit = type_ + val
+        bits.append(bit)
+    return ', '.join(bits[:-2] + [' & '.join(bits[-2:])])
+
+
+def clean_text(text, word):
+    text = text.replace('\n', '')
+    text = text.replace('~', word)
+    text = re.sub('[ ]{2,}', ' ', text).strip()  # repeated spaces
+    text = text.rstrip('.')  # trailing dots
+    return text.lower().lstrip(')').rstrip('(')
+
+
+def fill_in_dash(dash_suffix, word):
+    suffix = dash_suffix.lstrip('-')
+    if suffix[0] not in word:
+        if word + suffix != 'cosantóirí':
+            raise Exception(
+                'Bad suffix in teanglann?'
+                f'{word} {dash_suffix}'
+            )
+        modified_word = word + suffix
+    elif suffix[0] == suffix[1]:
+        # coinnigh (vn. -nneáil)  -> coinneáil
+        modified_word = word[:word.rindex(suffix[:2])] + suffix
+    else:
+        # éirigh (verbal noun -rí) -> éirí
+        modified_word = word[:word.rindex(suffix[0])] + suffix
+    return modified_word
+
+
+def manual_debug():
+    import pdb
+    p = pdb.Pdb()
+    p.set_trace(sys._getframe().f_back)
+
+
+if __name__ == '__main__':
+    find_teanglann_periphrases()
