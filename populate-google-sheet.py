@@ -603,6 +603,8 @@ but don't want to
                 return {}  # different words? no agreement
                 manual_debug()
         ret.update(parts)
+    if 'gender' not in ret:
+        return {}  # not a noun
     apply_declension_hints(ret['nominative singular'], ret['gender'], ret)
     for k, w in ret.items():
         if k != 'gender':
