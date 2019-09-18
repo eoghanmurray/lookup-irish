@@ -202,9 +202,7 @@ def populate_genitive_verbal_noun(limit=-1, refresh=True):
                     if GenitiveVN:
                         GenitiveVN += '\n'
                     vn = assign_verbal_noun(row.GA)
-                    if not vn:
-                        manual_debug()
-                    else:
+                    if vn:
                         GenitiveVN += 'ag ' + vn
                 if (PoS or Gender) and GenitiveVN:
                     values.append(
@@ -811,9 +809,13 @@ def assign_verbal_noun(verb):
         # gets 'croith'
         return verb + 'eadh'
     if verb not in [
-            'tosnaigh', 'réigh',
+            'tosnaigh',
+            'réigh',
             'áil',  # literary use as a verb
             'cis',
+            'gad',
+            'fainic',  # used imperatively only
+            'batráil',
     ]:
         manual_debug()
     pass
