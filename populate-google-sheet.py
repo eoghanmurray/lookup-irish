@@ -359,6 +359,8 @@ def get_definition_soup(word, dictionary, lang='ga', page_no=1):
 def get_foclóir_candidates(word):
     candidates = set()
     for n in range(1, 18):
+        if n % 5 == 0:
+            print(f'Warning: getting {n} pages of {word} on foclóir')
         soup = get_definition_soup(word, 'foclóir', lang='ga', page_no=n)
         result_lists = soup.find_all(class_='result-list')
         if not result_lists:
