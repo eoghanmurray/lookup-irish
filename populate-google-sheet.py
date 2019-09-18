@@ -10,7 +10,7 @@ import os
 from bs4 import BeautifulSoup
 import requests
 import re
-from collections import OrderedDict, namedtuple
+from collections import OrderedDict, namedtuple, defaultdict
 import codecs
 import sys
 import time
@@ -670,81 +670,129 @@ http://nualeargais.ie/gnag/artikel.htm
     return ret
 
 
+debug_decl = {
+    'vowel_ending': {
+        'broad': defaultdict(list),
+        'slender': defaultdict(list),
+    },
+    'non_vowel_ending': {
+        'broad': defaultdict(list),
+        'slender': defaultdict(list),
+    },
+}
+
+
 def apply_declension_hints(singular, actual_gender, wd=None):
-    """
-http://nualeargais.ie/foghlaim/nouns.php?teanga=
-    """
-    declension_guesser = [
-        ('nf4', ['e', 'í']),   # weak indicators of feminine, only works for 'abstract nouns'?  # TODO: test
-        ('nm4', ['ín']),
-        ('nm4', ['a', 'i', 'o', 'u', 'á', 'é', 'ó', 'ú']), # TODO: don't know whether to use these to highlight masculine
-        ('nf3', ['úil', 'ail', 'cht', 'irt', 'úint', 'áint']),
-        ('nm3', ['éir', 'eoir', 'óir', 'úir', 'aeir']),  # profession
-        ('nf2',  ['eog', 'óg', 'lann']),
-        ('3', ['áil', 'íl', 'aíl']),  # could be m or f  http://nualeargais.ie/gnag/3dekl.htm
-    ]
+
+    # numbers show confidence i.e. count(nf) / (count(nf) + count(nm))
+    # data collected in noun-declensions.json
+
+    strong_feminine_endings = {
+
+# 'cht' masculine on short words!
+        'cht': 0.91,
+
+# 'irt' more nf2 than nf3 as would be indicated by http://nualeargais.ie/foghlaim/nouns.php
+        'irt': 0.97,
+
+# 'úil' 6 in top 6,500 again more nf2 and only one nf3 contrary to nualeargais
+        'úil': 1.0,
+
+# 'int': nualeargais has this as úint/áint but we've got tairiscint/ léirthuiscint/ míthuiscint
+# all nf3 in the top 6000
+# with one mismatch: sáirsint nm4
+        'int': 0.93,
+
+        # Earcail/Uncail are masculine, again lots of nf2/nf5/nf, and only 2 nf3
+        # not using, as too easily confused with ['áil', 'íl', 'aíl'] endings
+        # which could be m/f http://nualeargais.ie/gnag/3dekl.htm
+        # 'ail': 0.88,
+
+        # following supposed to be nf2 according to nualeargais
+        'lann': 0.89,  # exceptions: nm1 salann, nm1 anlann
+        'eog': 1.0,
+        'óg': 0.98,  # exception: nm4 dallamullóg
+    }
+
+    # http://nualeargais.ie/foghlaim/nouns.php?teanga= says
+    # "abstract nouns ending in -e, -í are likely to be f4
+    # because of the high proportion of nm here, there's no point
+    # in highlighting these endings as feminine (plus they are too short)
+    # they are all declension 4 though, with only one nf5: 'leite'
+    declension_4_endings = {
+        'e': 0.41,  # f: 107, m: 152
+        'í': 0.18,  # f: 15, m: 69
+    }
+
+    strong_masculine_endings = {
+        'ín': 0.9,  # diminutive, turns feminine words masculine
+
+        # professions:
+        'éir': 0.74,  # 'éir' exceptions are short:
+                           # nf2: réir/spéir/comhréir/cléir/mistéir
+                           # nf5: céir
+        'eoir': 0.93,  # ditto nf2:deoir nf5:beoir/treoir/míthreoir
+        'óir': 0.93, # ditto nf2:glóir nf3:tóir/onóir/éagóir/altóir/seanmóir
+        'úir': 1.0,
+        'aeir': 1.0,
+    }
     exception_explanation = None
-    found = False
-    for dec, endings in declension_guesser:
-        for ending in endings:
-            if singular.endswith(ending):
-                if dec in '12345' and actual_gender.endswith(dec):
-                    # adhmáil is 3rd declension but ending
-                    # doesn't indicate masculine/feminine
-                    pass
-                elif actual_gender != dec:
-                    # an exception?
-                    manual_debug()
-                    if dec == 'nf4':
-                        exception_explanation = 'Not an abstract noun?'
-                    if dec == 'nf3' and actual_gender == 'nm3':
-                        # e.g. gnólacht, is nm3, should be nf3 according to 'cht' ending
-                        pass
-                elif wd:
-                    wd['nominative singular'] = singular[:-len(ending)] + '<i>' + singular[-len(ending):] + '</i>'
-                found = True
-                break
+    for ending in strong_feminine_endings:
+        if singular.endswith(ending):
+            a, b = singular[:-len(ending)], singular[-len(ending):]
+            if actual_gender[:2] == 'nf':
+                wd['nominative singular'] = a + '<i>' + b + '</i>'
+            else:
+                wd['nominative singular'] = a + '<u>' + b + '</u>'
+            return
+    for ending in strong_masculine_endings:
+        if singular.endswith(ending):
+            a, b = singular[:-len(ending)], singular[-len(ending):]
+            if actual_gender[:2] == 'nm':
+                wd['nominative singular'] = a + '<i>' + b + '</i>'
+            else:
+                wd['nominative singular'] = a + '<u>' + b + '</u>'
+            return
+
+    pos = -2
     vowels = 'aáeéiíoóuú'
-    if not found:
-        if singular[-1] in vowels:
-            manual_debug()
-        pos = -2
-        while singular[pos] not in vowels:
+    # http://nualeargais.ie/gnag/2dekl.htm
+    # 'end in slender or broad consonants'
+    # assumption: a slender consonant is feminine
+    # and should not be in nm1
+    # (or, weaker assumption, should not otherwise be nm)
+    if singular[-1] in vowels:
+        # probably m4/f4 - TODO is there any m/f pattern?
+        # or does slender/weak have a pattern?
+        if False:
+            return
+        debug_key = 'vowel_ending'
+        if singular[-2] in vowels:
+            print(f'unusual? double vowel ending {singular}')
             pos -= 1
-        bs = {
-            ('broad', 'nm1'): 'aouáóú',
-            ('slender', 'nf2'): 'eiéí',
-        }
-        found = False
-        for (broad_slender, dec), bsv in bs.items():
-            if singular[pos] in bsv:
-                # slender consonant
-                if len(actual_gender) == 2 and dec.startswith(actual_gender):
-                    # I guess teanglann assumes we know it's nf1/nm1
-                    if not wd:
-                        return dec
-                    else:
-                        wd['gender'] = dec
-                elif actual_gender != dec:
-                    if actual_gender == 'nf2':
-                        # fails for beach, bos, scornach which are nf2
-                        # http://nualeargais.ie/gnag/2dekl.htm
-                        # 'end in slender or broad consonants'
-                        pass
-                    else:
-                        manual_debug()
-                        exception_explanation = f'not a {broad_slender} consonant'
-                elif wd:
-                    if actual_gender == 'nm1':
-                        # don't highlight a broad consonant for nm1 as
-                        # broad consonants are also in nf2
-                        pass
-                    elif actual_gender == 'nf2':
-                        wd['nominative singular'] = singular[:pos] + '<i>' + singular[pos] + '</i>' + singular[pos + 1:]
-                found = True
-        if not found:
-            manual_debug()
+    else:
+        debug_key = 'non_vowel_ending'
+
+    while abs(pos) < len(singular) and \
+          singular[pos] not in vowels:
+        pos -= 1
+    if abs(pos) == len(singular) and singular[pos] not in vowels:
+        print(f"Can't determine broad/slender: {singular}")
+        return
+    slender_vowels = 'eiéí'
+    if singular[pos] in slender_vowels:
+        debug_decl[debug_key]['slender'][actual_gender].append(singular)
+        # slender consonant
+        a, b, c = singular[:pos], singular[pos], singular[pos + 1:]
+        if actual_gender != 'nf':
+            #print(f'Masculine noun ending in slender consonant: {singular}')
+            #wd['nominative singular'] = a + '<u>' + b + '</u>' + c
             pass
+        else:
+            #wd['nominative singular'] = a + '<i>' + b + '</i>' + c
+            pass
+    else:
+        debug_decl[debug_key]['broad'][actual_gender].append(singular)
 
 
 def assign_verbal_noun(verb):
@@ -1136,7 +1184,10 @@ if __name__ == '__main__':
             print('ag ' + assign_verbal_noun(GA))
         print(EN)
     elif True:
-        populate_genitive_verbal_noun(limit=500)
+        try:
+            populate_genitive_verbal_noun(limit=-1)
+        finally:
+            print(debug_decl)
     elif False:
         find_teanglann_periphrases()
     elif False:
