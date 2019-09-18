@@ -1,4 +1,4 @@
-# irish-lookup
+# lookup_irish.py
 
 Scrapes teanglann.ie and focloir.ie and extracts a good English translation for an Irish word combining both websites.
 
