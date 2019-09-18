@@ -183,7 +183,7 @@ def populate_genitive_verbal_noun(limit=-1, refresh=True):
         range_start = None
         for n, row in enumerate(rows):
             cell_no = n + 1  # 1 for 0 index
-            insert_now = False
+            insert_now = cell_no % 600 == 0
             if row.GA and (
                     not row.GenitiveVN or
                     refresh
@@ -210,18 +210,15 @@ def populate_genitive_verbal_noun(limit=-1, refresh=True):
                     vn = assign_verbal_noun(row.GA)
                     if vn:
                         GenitiveVN += 'ag ' + vn
-                if GenitiveVN:
-                    values.append(
-                        [
-                            GenitiveVN
-                        ],
-                    )
-                    if not range_start:
-                        range_start = f'{COLUMN_KEY["GenitiveVN"]}{cell_no}'
-                    range_end = f'{COLUMN_KEY["GenitiveVN"]}{cell_no}'
-                    count += 1
-                else:
-                    insert_now = True
+                values.append(
+                    [
+                        GenitiveVN
+                    ],
+                )
+                if not range_start:
+                    range_start = f'{COLUMN_KEY["GenitiveVN"]}{cell_no}'
+                range_end = f'{COLUMN_KEY["GenitiveVN"]}{cell_no}'
+                count += 1
             else:
                 insert_now = True
             if values and insert_now:
