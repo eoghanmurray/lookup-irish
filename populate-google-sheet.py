@@ -188,10 +188,10 @@ def populate_genitive_verbal_noun(limit=-1, refresh=True):
                     not row.GenitiveVN or
                     refresh
                     ):
-                PoS, EN, Gender = get_teanglann_definition(row.GA)
                 GenitiveVN = ''
-                if 'Noun' in PoS and 'Noun' in row.PoS and ' ' not in row.GA:
+                if 'Noun' in row.PoS and ' ' not in row.GA:
                     declensions = assign_plural_genitive(row.GA, html=True)
+                    Gender = declensions.get('gender', None)
                     if len(declensions) == 5:
                         GenitiveVN += f'<div class="{Gender[:2]} d{Gender[2:]}">'
                         GenitiveVN += declensions['nominative singular'] + '/' + declensions['nominative plural']
@@ -204,13 +204,13 @@ def populate_genitive_verbal_noun(limit=-1, refresh=True):
                         GenitiveVN += '<div style="font-size:0.6em">' + declensions['gender'] + '</div>'
                         GenitiveVN += declensions['genitive singular']
                         GenitiveVN += '</div>'
-                if 'Verb' in PoS and 'ransitive' in PoS and ' ' and 'Verb' in row.PoS and 'ransitive' in row.PoS and ' '  not in row.GA:
+                if 'Verb' in row.PoS and 'ransitive' in row.PoS and ' '  not in row.GA:
                     if GenitiveVN:
                         GenitiveVN += '\n'
                     vn = assign_verbal_noun(row.GA)
                     if vn:
                         GenitiveVN += 'ag ' + vn
-                if (PoS or Gender) and GenitiveVN:
+                if GenitiveVN:
                     values.append(
                         [
                             GenitiveVN
