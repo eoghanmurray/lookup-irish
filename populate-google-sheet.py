@@ -848,16 +848,19 @@ def assign_verbal_noun(verb):
     if get_verb_from_verbal_noun(verb + 'eadh') == verb:
         # gets 'croith'
         return verb + 'eadh'
+
+    if verb == 'tosnaigh':
+        # https://www.gaois.ie/crp/ga/?txt=tosn%C3%BA&lang=ga&SearchMode=narrow
+        return 'tosnú'  # rather than 'tosú'
     if verb not in [
-            'tosnaigh',
-            'réigh',
+            'réigh',  # is it réiteach also?
             'áil',  # literary use as a verb
             'cis',
             'gad',
             'fainic',  # used imperatively only
             'batráil',
     ]:
-        manual_debug()
+        print(f'Warning: No verbal noun found for {verb}')
     pass
 
 
