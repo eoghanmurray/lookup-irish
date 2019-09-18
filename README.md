@@ -28,6 +28,7 @@ run the following from the command line:
     pip3 install virtualenv
     virtualenv .virtual
     source .virtual/bin/activate
+    pip3 install -r requirements.txt
 
 Then you can lookup a word:
 
