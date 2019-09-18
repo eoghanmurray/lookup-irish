@@ -778,7 +778,8 @@ def apply_declension_hints(singular, actual_gender, wd=None):
     while abs(pos) < len(singular) and \
           singular[pos] not in vowels:
         pos -= 1
-    if abs(pos) == len(singular) and singular[pos] not in vowels:
+    if abs(pos) > len(singular) or (
+            abs(pos) == len(singular) and singular[pos] not in vowels):
         print(f"Can't determine broad/slender: {singular}")
         return
     slender_vowels = 'eiéí'
