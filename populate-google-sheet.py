@@ -672,18 +672,6 @@ http://nualeargais.ie/gnag/artikel.htm
     return ret
 
 
-debug_decl = {
-    'vowel_ending': {
-        'broad': defaultdict(list),
-        'slender': defaultdict(list),
-    },
-    'non_vowel_ending': {
-        'broad': defaultdict(list),
-        'slender': defaultdict(list),
-    },
-}
-
-
 def apply_declension_hints(singular, actual_gender, wd=None):
 
     # numbers show confidence i.e. count(nf) / (count(nf) + count(nm))
@@ -758,23 +746,22 @@ def apply_declension_hints(singular, actual_gender, wd=None):
 
     pos = -2
     vowels = 'aáeéiíoóuú'
-    # http://nualeargais.ie/gnag/2dekl.htm
-    # 'end in slender or broad consonants'
-    # assumption: a slender consonant is feminine
-    # and should not be in nm1
-    # (or, weaker assumption, should not otherwise be nm)
     if singular[-1] in vowels:
-        # probably m4/f4 - TODO is there any m/f pattern?
-        # or does slender/weak have a pattern?
-        if False:
-            return
-        debug_key = 'vowel_ending'
-        if singular[-2] in vowels:
-            print(f'unusual? double vowel ending {singular}')
-            pos -= 1
-    else:
-        debug_key = 'non_vowel_ending'
+        # probably m4/f4
+        # Q: with a final vowel, is there a pattern according
+        # to the penultimate slender/broad consonent?
+        # A: no
+        # slender: {'nf': 68, 'nm': 96}
+        # broad: {'nf': 34, 'nm': 180}
+        return
 
+    # http://nualeargais.ie/gnag/1dekl.htm
+    # nm1 'end in broad consonants'
+    # http://nualeargais.ie/gnag/2dekl.htm
+    # nf1 'end in slender or broad consonants'
+    # a slender consonant is 11x more likely to be feminine
+    # slender: {'nf': 316, 'nm': 28} (data from nouns that get this far out of the 6,500)
+    # broad: {'nf': 99, 'nm': 864}
     while abs(pos) < len(singular) and \
           singular[pos] not in vowels:
         pos -= 1
@@ -782,20 +769,16 @@ def apply_declension_hints(singular, actual_gender, wd=None):
             abs(pos) == len(singular) and singular[pos] not in vowels):
         print(f"Can't determine broad/slender: {singular}")
         return
+    # not highlighting broad as a masculine signifier
+    # as although there are 8.7 times as many, that is still 99 exceptions
     slender_vowels = 'eiéí'
     if singular[pos] in slender_vowels:
-        debug_decl[debug_key]['slender'][actual_gender].append(singular)
-        # slender consonant
+        # slender consonant is determined by slender vowel
         a, b, c = singular[:pos], singular[pos], singular[pos + 1:]
         if actual_gender != 'nf':
-            #print(f'Masculine noun ending in slender consonant: {singular}')
-            #wd['nominative singular'] = a + '<u>' + b + '</u>' + c
-            pass
+            wd['nominative singular'] = a + '<u>' + b + '</u>' + c
         else:
-            #wd['nominative singular'] = a + '<i>' + b + '</i>' + c
-            pass
-    else:
-        debug_decl[debug_key]['broad'][actual_gender].append(singular)
+            wd['nominative singular'] = a + '<i>' + b + '</i>' + c
 
 
 def assign_verbal_noun(verb):
@@ -1187,10 +1170,7 @@ if __name__ == '__main__':
             print('ag ' + assign_verbal_noun(GA))
         print(EN)
     elif True:
-        try:
-            populate_genitive_verbal_noun(limit=-1)
-        finally:
-            print(debug_decl)
+        populate_genitive_verbal_noun(limit=-1)
     elif False:
         find_teanglann_periphrases()
     elif False:
