@@ -169,8 +169,24 @@ def populate_non_EN(limit=-1):
                             parts_of_speech[k].update(v)
                         else:
                             parts_of_speech[k] = v
-                    genitive_vn.append(sense['genitive-vn'])
-                    genders.append(sense['gender'])
+                    if (sense.get('verbal-noun', None) and
+                        'Verb' in row.PoS and 'ransitive' in row.PoS):
+                        inf = 'ag ' + sense['verbal-noun']
+                        if inf in genitive_vns:
+                            import pdb; pdb.set_trace();
+                        if inf not in genitive_vns:
+                            genitive_vns.append(inf)
+                    if sense['gender'] and \
+                       'Noun' in sense['types'] and \
+                       'Noun' in row.PoS:
+                        genders.append(sense['gender'])
+                        if sense.get('genitive-plural', None):
+                            genitive_vns.append(sense['genitive-plural'])
+                    if sense['gender'] and \
+                       'Noun' in sense['types'] and \
+                       'Noun' in row.PoS:
+                        genders.append(sense['gender'])
+
                 PoS = join_parts_of_speech(parts_of_speech)
 
                 if PoS or genders or genitive_vn:

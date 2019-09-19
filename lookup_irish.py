@@ -29,6 +29,8 @@ if __name__ == '__main__':
             if sense['definitions']:
                 print()
                 print(sense['pos'], sense['gender'])
-                if 'genitive-vn' in sense:
-                    print(sense['genitive-vn'])
+                if 'genitive-plural' in sense:
+                    print(sense['genitive-plural'])
+                if 'verbal-noun' in sense:
+                    print(sense['verbal-noun'])
                 print('\n'.join(sense['definitions']))

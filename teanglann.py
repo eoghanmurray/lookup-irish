@@ -223,16 +223,15 @@ def get_teanglann_senses(
                         if verbose:
                             print(f'{label}[{formatted_text}]')
 
-                if definition:
-                    if 'Verb' in types:
-                        genitive_vn = assign_verbal_noun(word)
-                    elif 'Noun' in types:
-                        p = sense_assign_plural_genitive(
-                            word, first_line, gender
-                        )
-                        genitive_vn = format_declensions(p, gender, format)
-                    if('genitive-vn' in sense and
-                       sense['genitive-vn'] != genitive_vn):
+                if 'Verb' in types:
+                    vn = assign_verbal_noun(word)
+                    sense['verbal-noun'] = vn
+                if 'Noun' in types:
+                    p = sense_assign_plural_genitive(
+                        word, first_line, gender
+                    )
+                    gp = format_declensions(p, gender, format)
+                    if sense.get('genitive-plural', gp) != gp:
                         senses.append({
                             'definitions': [],
                             'raw_definitions': [],
@@ -242,7 +241,7 @@ def get_teanglann_senses(
                             'pos': pos,
                         })
                         sense = senses[-1]
-                    sense['genitive-vn'] = genitive_vn
+                    sense['genitive-plural'] = gp
 
                 if definition and definition not in sense['definitions']:
                     # could filter/rearrange existing definitions here
