@@ -53,8 +53,11 @@ http://nualeargais.ie/gnag/artikel.htm
     genitive = 'genitive' in part_of_speech
     if 'plural' in part_of_speech:
         ret = 'na '
-    elif nf and genitive:
-        ret = '<i>na</i> '
+    elif genitive:
+        if nf:
+            ret = '<i>na</i> '
+        else:
+            ret = '<i>an</i> '
     else:
         ret = 'an '
     if 'plural' in part_of_speech:
