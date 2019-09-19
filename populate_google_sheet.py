@@ -141,7 +141,7 @@ def populate_empty(refresh=True, limit=15):
             insert_block(sheet, range_start + ':' + range_end, values)
 
 
-def populate_pos_gender(limit=-1):
+def populate_non_EN(limit=-1):
     sheet = get_sheet()
     rows = get_range(sheet)
     if rows:
@@ -151,27 +151,33 @@ def populate_pos_gender(limit=-1):
         for n, row in enumerate(rows):
             cell_no = n + 2  # +1 for 0 index, +1 as we are skipping header
             insert_now = False
-            if row.GA and (
-                    not row.PoS
-                    ):
+            if row.GA:
                 senses = get_teanglann_senses(row.GA)
 
                 parts_of_speech = {}
+                genitive_vns = []
+                genders = []
                 for sense in senses:
+                    use_sense = False
+                    for d in sense['definitions']:
+                        if not row.EN or d in row.EN:
+                            use_sense = True
+                    if not use_sense:
+                        continue
                     for k, v in sense['types'].items():
                         if isinstance(v, dict) and k in parts_of_speech:
                             parts_of_speech[k].update(v)
                         else:
                             parts_of_speech[k] = v
+                    genitive_vn.append(sense['genitive-vn'])
+                    genders.append(sense['gender'])
                 PoS = join_parts_of_speech(parts_of_speech)
 
-                EN = '\n'.join([d['definitions'] for d in senses])
-                Gender = '\n'.join([d['genders'] for d in senses])
-
-                if PoS or Gender:
+                if PoS or genders or genitive_vn:
                     update = {
                         'PoS': PoS,
-                        'Gender': Gender,
+                        'Gender': '\n'.join(genders),
+                        'GenitiveVN': '\n'.join(genitive_vn),
                     }
                     column_start = False
                     column_end = False
@@ -200,54 +206,6 @@ def populate_pos_gender(limit=-1):
                     count += 1
                 else:
                     insert_now = True
-            else:
-                insert_now = True
-            if values and insert_now:
-                insert_block(sheet, range_start + ':' + range_end, values)
-                values = []
-                range_start = None
-
-            if count == limit:
-                print(f'{count} rows updated')
-                break
-        if values:
-            insert_block(sheet, range_start + ':' + range_end, values)
-
-
-def populate_genitive_verbal_noun(limit=-1, refresh=True):
-    sheet = get_sheet()
-    rows = get_range(sheet)
-    if rows:
-        count = 0
-        values = []
-        range_start = None
-        for n, row in enumerate(rows):
-            cell_no = n + 2  # +1 for 0 index, +1 as we are skipping header
-            insert_now = cell_no % 600 == 0
-            if row.GA and (
-                    not row.GenitiveVN or
-                    refresh
-                    ):
-                GenitiveVN = ''
-                if 'Noun' in row.PoS and ' ' not in row.GA:
-                    declensions = assign_plural_genitive(row.GA, html=True)
-                    GenitiveVN += format_declensions(declensions)
-                if 'Verb' in row.PoS and 'ransitive' in row.PoS and \
-                   ' ' not in row.GA:
-                    if GenitiveVN:
-                        GenitiveVN += '\n'
-                    vn = assign_verbal_noun(row.GA)
-                    if vn:
-                        GenitiveVN += 'ag ' + vn
-                values.append(
-                    [
-                        GenitiveVN
-                    ],
-                )
-                if not range_start:
-                    range_start = f'{COLUMN_KEY["GenitiveVN"]}{cell_no}'
-                range_end = f'{COLUMN_KEY["GenitiveVN"]}{cell_no}'
-                count += 1
             else:
                 insert_now = True
             if values and insert_now:
@@ -326,7 +284,7 @@ Populate the AUTO column to compare against existing manual entries
 
 if __name__ == '__main__':
     if True:
-        populate_genitive_verbal_noun(limit=-1)
+        populate_non_EN(limit=100)
     elif False:
         populate_AUTO_comparison(refresh=True)
     elif True:
