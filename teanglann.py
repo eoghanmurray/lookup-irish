@@ -16,6 +16,7 @@ from focloir import get_foclóir_candidates, foclóir_score_definition
 
 def get_teanglann_senses(
         word, return_raw=False, sort_by_foclóir=False, verbose=False,
+        return_counts=False,
         format='html'):
 
     candidates = get_foclóir_candidates(word)
@@ -300,7 +301,11 @@ def get_teanglann_senses(
             sense['score'] = min([d[0] for d in sense['definitions']])
             sense['definitions'] = [d[1] for d in sense['definitions']]
         senses.sort(key='score')
-    return senses
+
+    if return_counts:
+        return senses, sum(len(s['raw_definitions']) for s in senses), len(candidates)
+    else:
+        return senses
 
 
 def get_teanglann_subentries(word):

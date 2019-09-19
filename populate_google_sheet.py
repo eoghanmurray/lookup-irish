@@ -178,7 +178,7 @@ def populate_non_EN(limit=-1):
             cell_no = n + 2  # +1 for 0 index, +1 as we are skipping header
             insert_now = False
             if row.GA:
-                senses = get_teanglann_senses(row.GA)
+                senses, teanglann_count, focloir_count = get_teanglann_senses(row.GA, return_counts=True)
 
                 parts_of_speech = {}
                 genitive_vns = []
@@ -223,6 +223,10 @@ def populate_non_EN(limit=-1):
                 update = {}
                 if GenitiveVN != row.GenitiveVN:
                     update['GenitiveVN'] = GenitiveVN
+                if teanglann_count and row.NTeanglann != str(teanglann_count):
+                    update['NTeanglann'] = teanglann_count
+                if focloir_count and row.NFocloir != str(focloir_count):
+                    update['NFocloir'] = focloir_count
                 if genders and \
                    (not row.Gender or row.Gender in ['nf', 'nm']):
                     ng = '\n'.join(genders)
