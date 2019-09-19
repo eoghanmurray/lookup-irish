@@ -1,0 +1,63 @@
+<!-- link -->
+<link href='style.css' rel='stylesheet' type='text/css'>
+
+
+<!-- start row -->
+<div class="row">
+
+	<!-- column 1 -->
+	<div class="large-6 columns text-center ga-container">
+		<h1>{{GA}}</h1>
+	</div>
+	<!-- end column 1 -->
+
+	<!-- column 2 -->
+	<div class="large-6 columns">
+
+		<!-- inner row -->
+		<div class="row pronounce-container">
+
+			<!-- start -->
+			<div class="large-12 columns text-right no-mobile">
+				<p class="no-mobile">Pronunciation</p>
+			</div>
+			<!-- end -->
+
+			<!-- start -->
+			<div class="large-12 columns text-right">
+				<button class="button" onclick="document.getElementById('connacht').play()"><span>Connacht</span></button>
+
+				<audio id="connacht" preload="none">
+					<source src="http://www.teanglann.ie/CanC/{{GA}}.mp3" type="audio/mpeg">
+				</audio>
+			</div>
+			<!-- end -->
+
+			<!-- start -->
+			<div class="large-12 columns text-right">
+				<button class="button" onclick="document.getElementById('ulster').play()"><span>Ulster</span></button>
+
+				<audio id="ulster" preload="none">
+					<source src="http://www.teanglann.ie/CanU/{{GA}}.mp3" type="audio/mpeg">
+				</audio>
+			</div>
+			<!-- end -->
+
+			<!-- start -->
+			<div class="large-12 columns text-right">
+				<button class="button" onclick="document.getElementById('munster').play()"><span>Munster</span></button>
+
+				<audio id="munster" preload="none">
+					<source src="http://www.teanglann.ie/CanM/{{GA}}.mp3" type="audio/mpeg">
+				</audio>
+			</div>
+			<!-- end -->
+
+		</div>
+		<!-- end inner row -->
+
+	</div>
+	<!-- end column 2 -->
+
+</div>
+<!-- end -->
