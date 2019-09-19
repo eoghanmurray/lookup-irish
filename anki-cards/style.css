@@ -90,8 +90,7 @@ hr {
     color: black;
     text-align: center;
     text-decoration: none;
-    line-height: 50%;
-    height: 50%;
+    min-height: 3em;
     font-size: 12px;
     cursor: pointer;
     width: 50%;
