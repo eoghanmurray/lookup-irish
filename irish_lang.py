@@ -220,7 +220,7 @@ def format_declensions(decl, gender=None, format='html'):
         gender = decl['gender']
     middle = gender
     if format == 'html':
-        middle = '<div style="font-size:0.6em">' + middle + '</div>'
+        middle = '<div class="decl">' + middle + '</div>'
     elif format == 'bash':
         middle = '\n'
     r = ''
