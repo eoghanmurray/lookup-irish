@@ -91,3 +91,6 @@ if __name__ == '__main__':
 
     # not getting 'cream'
     get_teanglann_definition('uachtar')
+
+    # different senses king/forearm with nf4/nm4
+    get_teanglann_definition('rí')

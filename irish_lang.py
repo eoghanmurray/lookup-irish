@@ -213,24 +213,26 @@ def apply_declension_hints(singular, actual_gender, wd=None):
             wd['nominative singular'] = a + '<i>' + b + '</i>' + c
 
 
-def format_declensions(decl, format='html'):
-    middle = gender = decl.get('gender', None)
-    if not middle:
-        return ''
+def format_declensions(decl, gender=None, format='html'):
+    if gender is None:
+        if 'gender' not in decl:
+            raise Exception('Need a gender set to properly set declensions')
+        gender = decl['gender']
+    middle = gender
     if format == 'html':
         middle = '<div style="font-size:0.6em">' + middle + '</div>'
     elif format == 'bash':
         middle = '\n'
     r = ''
-    if len(decl) == 5:
-        r += decl['nominative singular'] + '/' + decl['nominative plural']
-        r += middle
-        r += decl['genitive singular'] + '/' + decl['genitive plural']
-    elif ('nominative singular' in decl and
+    if ('nominative singular' in decl and
           'genitive singular' in decl):
         r += decl['nominative singular']
+        if 'nominative plural' in decl:
+            r += '/' + decl['nominative plural']
         r += middle
         r += decl['genitive singular']
+        if 'genitive plural' in decl:
+            r += '/' + decl['genitive plural']
     if format == 'html':
         r = f'<div class="{gender[:2]} d{gender[2:]}">' + r + '</div>'
     elif format == 'bash':

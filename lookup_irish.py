@@ -3,9 +3,7 @@
 import sys
 import argparse
 
-from teanglann import get_teanglann_definition
-from teanglann import assign_verbal_noun, assign_plural_genitive
-from irish_lang import format_declensions
+from teanglann import get_teanglann_senses
 
 parser = argparse.ArgumentParser(
     description="Lookup English definitions of Irish words from the wonderful "
@@ -25,12 +23,12 @@ if __name__ == '__main__':
     args = vars(parser.parse_args())
     if args:
         GA = args['irish-word']
-        PoS, EN, Gender = get_teanglann_definition(GA, verbose=args['verbose'])
-        print()
-        print(PoS, Gender)
-        if 'Noun' in PoS and ' ' not in GA:
-            declensions = assign_plural_genitive(GA, html=True)
-            print(format_declensions(declensions, format='bash'))
-        if 'Verb' in PoS and 'ransitive' in PoS and ' ' not in GA:
-            print('ag ' + assign_verbal_noun(GA))
-        print(EN)
+        for sense in get_teanglann_senses(GA,
+                                          verbose=args['verbose'],
+                                          format='bash'):
+            if sense['definitions']:
+                print()
+                print(sense['pos'], sense['gender'])
+                if 'genitive-vn' in sense:
+                    print(sense['genitive-vn'])
+                print('\n'.join(sense['definitions']))

@@ -9,11 +9,13 @@ from collections import OrderedDict
 from itertools import permutations
 
 from irish_lang import apply_declension_hints, apply_article
+from irish_lang import format_declensions
 from focloir import get_foclóir_candidates, foclóir_score_definition
 
 
-def get_teanglann_definition(
-        word, return_raw=False, sort_by_foclóir=False, verbose=False):
+def get_teanglann_senses(
+        word, return_raw=False, sort_by_foclóir=False, verbose=False,
+        format='html'):
 
     candidates = get_foclóir_candidates(word)
     if verbose:
@@ -21,14 +23,15 @@ def get_teanglann_definition(
         print(f'{Back.YELLOW}{Fore.BLACK}{word}'
               f'{Style.RESET_ALL} foclóir:', candidates)
 
-    parts_of_speech = OrderedDict()
-    definitions = []
-    raw_definitions = []
-    genders = []
+    senses = [{
+        'definitions': [],
+        'raw_definitions': [],
+    }]
 
     for subentries, subentry_labels in get_teanglann_subentries(word):
         first_line = subentries[0]
         gender = None
+        genitive_vn = None
         types = OrderedDict()  # using as ordered set
         if first_line.find(title="feminine") and \
            first_line.find(title="masculine"):
@@ -77,6 +80,23 @@ def get_teanglann_definition(
         if first_line.find(title="prefix"):
             types['Prefix'] = True
 
+        type_sig = ' & '.join(types.keys())
+        sense = senses[-1]
+        if ('gender' in sense and
+            sense['gender'] != gender) or \
+            ('type-sig' in sense and
+             sense['type-sig'] != type_sig):
+            senses.append({
+                'definitions': [],
+                'raw_definitions': [],
+            })
+            sense = senses[-1]
+        sense['gender'] = gender
+        sense['type-sig'] = type_sig
+        sense['types'] = types
+        pos = join_parts_of_speech(types)
+        sense['pos'] = pos
+
         for subentry in subentries:
             raw_text = clean_text(' '.join(subentry.stripped_strings), word)
             if raw_text.startswith('verbal noun') and ' of ' in raw_text:
@@ -90,7 +110,7 @@ def get_teanglann_definition(
         if verbose:
             print()
             print(f'{Back.RED}{word}'
-                  f'{Style.RESET_ALL}', print_types(types), gender)
+                  f'{Style.RESET_ALL}', join_parts_of_speech(types), gender)
         for label, subentry in zip(subentry_labels, subentries):
             transs = subentry.find_all(class_='trans')
             if len(transs) > 1 and (
@@ -160,7 +180,7 @@ def get_teanglann_definition(
                     defn = '/'.join(defn_words)
                 if len(transs) > 1:
                     formatted_text = f'X{len(transs)} {formatted_text}'
-                raw_definitions.append(f'[{trans_text}]')
+                sense['raw_definitions'].append(f'[{trans_text}]')
                 definition = None
                 if defn:
                     definition = maybe_to + defn + first_trans_extra
@@ -194,40 +214,53 @@ def get_teanglann_definition(
                     else:  # no break - for
                         if verbose:
                             print(f'{label}[{formatted_text}]')
-                if definition and definition not in definitions:
+
+                if definition:
+                    if 'Verb' in types:
+                        genitive_vn = assign_verbal_noun(word)
+                    elif 'Noun' in types:
+                        p = sense_assign_plural_genitive(
+                            word, first_line, gender
+                        )
+                        genitive_vn = format_declensions(p, gender, format)
+                    if('genitive-vn' in sense and
+                       sense['genitive-vn'] != genitive_vn):
+                        senses.append({
+                            'definitions': [],
+                            'raw_definitions': [],
+                            'gender': gender,
+                            'type-sig': type_sig,
+                            'types': types.copy(),
+                            'pos': pos,
+                        })
+                        sense = senses[-1]
+                    sense['genitive-vn'] = genitive_vn
+
+                if definition and definition not in sense['definitions']:
                     # could filter/rearrange existing definitions here
                     if 'Prefix' in types:
                         definition = definition + ' (as prefix)'
                     if sort_by_foclóir:
                         if 'Verb' in types:
                             # put all verbs at the end (could do better)
-                            definitions.append((
+                            sense['definitions'].append((
                                 foclóir_min_score + 10,
                                 definition
                             ))
                         else:
-                            definitions.append((foclóir_min_score, definition))
+                            sense['definitions'].append(
+                                (foclóir_min_score, definition)
+                            )
                     else:
-                        definitions.append(definition)
+                        sense['definitions'].append(definition)
 
-        if gender and gender not in genders:
-            genders.append(gender)
-        for k, v in types.items():
-            if isinstance(v, dict) and k in parts_of_speech:
-                parts_of_speech[k].update(v)
-            else:
-                parts_of_speech[k] = v
-    if return_raw == 'force' or \
-       (not definitions and return_raw):
-        definitions = raw_definitions
-    elif sort_by_foclóir:
-        definitions.sort()
-        definitions = [d[1] for d in definitions]
-    return (
-        print_types(parts_of_speech),
-        '\n'.join(definitions),
-        '\n'.join(genders)
-    )
+    if sort_by_foclóir:
+        for sense in senses:
+            sense['definitions'].sort()
+            sense['score'] = min([d[0] for d in sense['definitions']])
+            sense['definitions'] = [d[1] for d in sense['definitions']]
+        senses.sort(key='score')
+    return senses
 
 
 def get_teanglann_subentries(word):
@@ -349,10 +382,6 @@ def assign_gender_declension(noun, first_line):
 
 
 def assign_plural_genitive(noun, html=True):
-    """
-Could scrape e.g. https://www.teanglann.ie/en/gram/teist
-but don't want to
-    """
 
     ret = {}
     for subentries, subentry_labels in get_teanglann_subentries(noun):
@@ -364,55 +393,78 @@ but don't want to
             # (dunno what it means to that there's a 'genitive singular'
             # leibhéalta)
             continue
-        flt = clean_text(bs4_get_text(first_line), noun)
-        parts = {'nominative singular': noun}
-        part_names = [
-            'nominative plural',
-            'genitive singular',
-            'genitive plural'
-        ]
-        for i in range(len(part_names), 0, -1):
-            for cs in permutations(part_names, i):
-                ct = ' & '.join(cs)
-                if ct in flt:
-                    rhs = flt.split(ct)[1]
-                    rhs_words = re.split('[,;)(] *', rhs)
-                    d_word = rhs_words[0].lstrip()
-                    if d_word.startswith('as substantive'):
-                        # e.g. smaoineamh
-                        # 'smaoinimh' is what we want (don't understand
-                        # 'smaointe' as 'genitive singular as verbal noun')
-                        d_word = d_word[14:].lstrip()
-                    if d_word.startswith('-'):
-                        d_word = fill_in_dash(d_word, noun)
-                    for cp in cs:
-                        if cp not in parts:
-                            parts[cp] = d_word
-        if 'nominative plural' not in parts:
-            p = re.split(r'[,(;] ?(?:plural|pl\.)', flt)
-            if len(p) > 1:
-                rhs_words = re.split('[,;)(] *', p[1])
-                d_word = rhs_words[0].lstrip()
-                if d_word.startswith('-'):
-                    d_word = fill_in_dash(d_word, noun)
-                parts['nominative plural'] = d_word
-                if 'genitive plural' not in parts:
-                    parts['genitive plural'] = d_word
         gender = assign_gender_declension(noun, first_line)
-        if gender:
-            ret['gender'] = gender
+        if not gender:
+            continue
+        ret['gender'] = gender
+        parts = sense_assign_plural_genitive(noun, first_line, gender, html)
         for k in parts:
             if k in ret and ret[k] != parts[k]:
+                print(f'ERROR: multiple cases for {k}; '
+                      f'{ret[k]} vs. {parts[k]}')
                 return {}  # different words? no agreement
-                manual_debug()
         ret.update(parts)
+        if gender:
+            if 'gender' in ret:
+                if ret['gender'][:2] != gender[:2]:
+                    print(f'ERROR: multiple genders for {k}')
+                elif len(ret['gender']) < len(gender):
+                    ret['gender'] = gender
+            else:
+                ret['gender'] = gender
     if 'gender' not in ret:
         return {}  # not a noun
-    apply_declension_hints(ret['nominative singular'], ret['gender'], ret)
-    for k, w in ret.items():
-        if k != 'gender':
-            ret[k] = apply_article(w, ret['gender'], k)
     return ret
+
+
+def sense_assign_plural_genitive(noun, first_line, gender, html=True):
+    """
+Could scrape e.g. https://www.teanglann.ie/en/gram/teist
+but don't want to
+    """
+    flt = clean_text(bs4_get_text(first_line), noun)
+    parts = {'nominative singular': noun}
+    part_names = [
+        'nominative plural',
+        'genitive singular',
+        'genitive plural'
+    ]
+    for i in range(len(part_names), 0, -1):
+        for cs in permutations(part_names, i):
+            ct = ' & '.join(cs)
+            if ct in flt:
+                rhs = flt.split(ct)[1]
+                rhs_words = re.split('[,;)(] *', rhs)
+                d_word = rhs_words[0].lstrip()
+                if d_word.startswith('as substantive'):
+                    # e.g. smaoineamh
+                    # 'smaoinimh' is what we want (don't understand
+                    # 'smaointe' as 'genitive singular as verbal noun')
+                    d_word = d_word[14:].lstrip()
+                if d_word.endswith('in certain phrases'):
+                    # e.g. cara
+                    # 'genitive plural': 'carad in certain phrases'
+                    # ignore
+                    continue
+                if d_word.startswith('-'):
+                    d_word = fill_in_dash(d_word, noun)
+                for cp in cs:
+                    if cp not in parts:
+                        parts[cp] = d_word
+    if 'nominative plural' not in parts:
+        p = re.split(r'[,(;] ?(?:plural|pl\.)', flt)
+        if len(p) > 1:
+            rhs_words = re.split('[,;)(] *', p[1])
+            d_word = rhs_words[0].lstrip()
+            if d_word.startswith('-'):
+                d_word = fill_in_dash(d_word, noun)
+            parts['nominative plural'] = d_word
+            if 'genitive plural' not in parts:
+                parts['genitive plural'] = d_word
+    apply_declension_hints(noun, gender, parts)
+    for k, w in parts.items():
+        parts[k] = apply_article(w, gender, k)
+    return parts
 
 
 def assign_verbal_noun(verb):
@@ -561,7 +613,7 @@ def expand_abbreviations(soup):
     return soup
 
 
-def print_types(type_dict):
+def join_parts_of_speech(type_dict):
     bits = []
     for type_, val in type_dict.items():
         if val is True:

@@ -7,8 +7,9 @@ from google.auth.transport.requests import Request
 from collections import namedtuple
 import os
 
-from teanglann import get_teanglann_definition, assign_plural_genitive
-from teanglann import assign_verbal_noun
+from teanglann import get_teanglann_senses
+from teanglann import assign_verbal_noun, assign_plural_genitive
+from teanglann import join_parts_of_speech
 from irish_lang import format_declensions
 
 # If modifying these scopes, delete the file token.pickle.
@@ -94,10 +95,23 @@ def populate_empty(refresh=True, limit=15):
                     not row.EN or
                     (refresh and row.EN.endswith('[AUTO]'))
                     ):
-                PoS, EN, Gender = get_teanglann_definition(
-                    row.GA,
-                    return_raw=True
-                )
+                senses = get_teanglann_senses(row.GA)
+
+                parts_of_speech = {}
+                for sense in senses:
+                    for k, v in sense['type'].items():
+                        if isinstance(v, dict) and k in parts_of_speech:
+                            parts_of_speech[k].update(v)
+                        else:
+                            parts_of_speech[k] = v
+                PoS = join_parts_of_speech(parts_of_speech)
+
+                EN = '\n'.join([d['definitions'] for d in senses])
+                if not EN:
+                    # old return_raw=True
+                    EN = '\n'.join([d['raw_definitions'] for d in senses])
+                Gender = '\n'.join([d['genders'] for d in senses])
+
                 if EN and EN + '\n[AUTO]' != row.EN:
                     values.append(
                         [
@@ -139,7 +153,20 @@ def populate_pos_gender(limit=-1):
             if row.GA and (
                     not row.Pos
                     ):
-                PoS, EN, Gender = get_teanglann_definition(row.GA)
+                senses = get_teanglann_senses(row.GA)
+
+                parts_of_speech = {}
+                for sense in senses:
+                    for k, v in sense['types'].items():
+                        if isinstance(v, dict) and k in parts_of_speech:
+                            parts_of_speech[k].update(v)
+                        else:
+                            parts_of_speech[k] = v
+                PoS = join_parts_of_speech(parts_of_speech)
+
+                EN = '\n'.join([d['definitions'] for d in senses])
+                Gender = '\n'.join([d['genders'] for d in senses])
+
                 if PoS or Gender:
                     values.append(
                         [
@@ -231,7 +258,20 @@ Populate the AUTO column to compare against existing manual entries
             if not row.EN or row.EN.endswith('[AUTO]'):
                 continue
             if n > 200:
-                PoS, EN, Gender = get_teanglann_definition(row.GA)
+                senses = get_teanglann_senses(row.GA)
+
+                parts_of_speech = {}
+                for sense in senses:
+                    for k, v in sense['types'].items():
+                        if isinstance(v, dict) and k in parts_of_speech:
+                            parts_of_speech[k].update(v)
+                        else:
+                            parts_of_speech[k] = v
+                PoS = join_parts_of_speech(parts_of_speech)
+
+                EN = '\n'.join([d['definitions'] for d in senses])
+                Gender = '\n'.join([d['genders'] for d in senses])
+
                 if False:
                     print()
                     print(f'C{cell_no}:E{cell_no}')
