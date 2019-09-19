@@ -233,7 +233,9 @@ def format_declensions(decl, gender=None, format='html'):
         r += decl['genitive singular']
         if 'genitive plural' in decl:
             r += '/' + decl['genitive plural']
-    if format == 'html':
+    if not r:
+        pass
+    elif format == 'html':
         r = f'<div class="{gender[:2]} d{gender[2:]}">' + r + '</div>'
     elif format == 'bash':
         r = r.replace('<u>', Back.RED)
