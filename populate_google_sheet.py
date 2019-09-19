@@ -17,9 +17,11 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # The ID and range of a sample spreadsheet.
 SPREADSHEET_ID = '1kiZlZp8weyILstvtL0PfIQkQGzuG7oZfP8n_qkMFAWo'
-RANGE = '6450-most-frequent-irish-words!A1:G'
+RANGE = '6450-most-frequent-irish-words!A1:I'
 
+ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 COLUMN_KEY = {}
+COL_HEAD = {}
 
 
 def get_sheet():
@@ -59,8 +61,9 @@ def get_range(sheet):
     if not values:
         return False
     FIRST_ROW_SIG = ' '.join([v.replace(' ', '_') for v in values[0]])
-    for col, letter in zip(values[0], 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'):
+    for col, letter in zip(values[0], ALPHABET):
         COLUMN_KEY[col] = letter
+        COL_HEAD[letter] = col
     RowTup = namedtuple('RowTup', FIRST_ROW_SIG)
     for v in values[1:]:
         v_ext = (v + [''] * len(values[0]))[:len(values[0])]
@@ -166,16 +169,34 @@ def populate_pos_gender(limit=-1):
                 Gender = '\n'.join([d['genders'] for d in senses])
 
                 if PoS or Gender:
-                    values.append(
-                        [
-                            PoS,
-                            row.EN,  # keep current value
-                            Gender,
-                        ],
-                    )
+                    update = {
+                        'PoS': PoS,
+                        'Gender': Gender,
+                    }
+                    column_start = False
+                    column_end = False
+                    value = []
+                    vfill = []
+                    for L in ALPHABET:
+                        if L not in COL_HEAD:
+                            break
+                        C = COL_HEAD[L]
+                        if C in update:
+                            if column_start is False:
+                                column_start = C
+                            column_end = C
+                            if vfill:
+                                value.extend(vfill)
+                                vfill = []
+                            value.append(update[C])
+                        elif column_start is not False:
+                            # keep current value
+                            vfill.append(getattr(row, C))
+
+                    values.append(value)
                     if not range_start:
-                        range_start = f'{COLUMN_KEY["PoS"]}{cell_no}'
-                    range_end = f'{COLUMN_KEY["Gender"]}{cell_no}'
+                        range_start = column_start + str(cell_no)
+                    range_end = column_end + str(cell_no)
                     count += 1
                 else:
                     insert_now = True
