@@ -19,12 +19,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SPREADSHEET_ID = '1kiZlZp8weyILstvtL0PfIQkQGzuG7oZfP8n_qkMFAWo'
 RANGE = '6450-most-frequent-irish-words!A1:G'
 
-FIRST_ROW_SIG = 'AUTO GA PoS EN Gender GenitiveVN Tags'
 COLUMN_KEY = {}
-alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-for col, letter in zip(FIRST_ROW_SIG.split(' '), alphabet):
-    COLUMN_KEY[col] = letter
-RowTup = namedtuple('RowTup', FIRST_ROW_SIG)
 
 
 def get_sheet():
@@ -63,7 +58,10 @@ def get_range(sheet):
     values = result.get('values', [])
     if not values:
         return False
-    assert ' '.join(values[0]) == FIRST_ROW_SIG
+    FIRST_ROW_SIG = ' '.join([v.replace(' ', '_') for v in values[0]])
+    for col, letter in zip(values[0], 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'):
+        COLUMN_KEY[col] = letter
+    RowTup = namedtuple('RowTup', FIRST_ROW_SIG)
     for v in values[1:]:
         v_ext = (v + [''] * len(values[0]))[:len(values[0])]
         yield RowTup(*v_ext)
