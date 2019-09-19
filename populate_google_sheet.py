@@ -151,7 +151,7 @@ def populate_pos_gender(limit=-1):
             cell_no = n + 2  # +1 for 0 index, +1 as we are skipping header
             insert_now = False
             if row.GA and (
-                    not row.Pos
+                    not row.PoS
                     ):
                 senses = get_teanglann_senses(row.GA)
 
