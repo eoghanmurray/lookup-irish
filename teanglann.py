@@ -41,7 +41,10 @@ def get_teanglann_senses(
                 if g not in re.sub(r, '', bs4_get_text(first_line)):
                     first_line.find(title=g).extract()
 
-        if first_line.find(title="feminine") and \
+        if first_line.find(title="pronoun"):
+            # sé/sí are not nouns
+            types['Pronoun'] = True
+        elif first_line.find(title="feminine") and \
            first_line.find(title="masculine"):
             # 'thar': has 'thairis (m) thairsti (f)' and is not a noun
             pass
