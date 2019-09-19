@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from colorama import Fore, Back, Style
+
 
 def eclipse(word, html=False):
     """
@@ -209,3 +211,34 @@ def apply_declension_hints(singular, actual_gender, wd=None):
             wd['nominative singular'] = a + '<u>' + b + '</u>' + c
         else:
             wd['nominative singular'] = a + '<i>' + b + '</i>' + c
+
+
+def format_declensions(decl, format='html'):
+    middle = gender = decl.get('gender', None)
+    if not middle:
+        return ''
+    if format == 'html':
+        middle = '<div style="font-size:0.6em">' + middle + '</div>'
+    elif format == 'bash':
+        middle = '\n'
+    r = ''
+    if len(decl) == 5:
+        r += decl['nominative singular'] + '/' + decl['nominative plural']
+        r += middle
+        r += decl['genitive singular'] + '/' + decl['genitive plural']
+    elif ('nominative singular' in decl and
+          'genitive singular' in decl):
+        r += decl['nominative singular']
+        r += middle
+        r += decl['genitive singular']
+    if format == 'html':
+        r = f'<div class="{gender[:2]} d{gender[2:]}">' + r + '</div>'
+    elif format == 'bash':
+        r = r.replace('<u>', Back.RED)
+        r = r.replace('</u>', Style.RESET_ALL)
+        if 'nf' in gender:
+            r = r.replace('<i>', Fore.MAGENTA)
+        else:
+            r = r.replace('<i>', Fore.BLUE)
+        r = r.replace('</i>', Style.RESET_ALL)
+    return r

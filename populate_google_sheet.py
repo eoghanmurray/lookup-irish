@@ -9,6 +9,7 @@ import os
 
 from teanglann import get_teanglann_definition, assign_plural_genitive
 from teanglann import assign_verbal_noun
+from irish_lang import format_declensions
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -165,25 +166,6 @@ def populate_pos_gender(limit=-1):
                 break
         if values:
             insert_block(sheet, range_start + ':' + range_end, values)
-
-
-def format_declensions(decl):
-    gender = decl.get('gender', None)
-    r = ''
-    if len(decl) == 5:
-        r += f'<div class="{gender[:2]} d{gender[2:]}">'
-        r += decl['nominative singular'] + '/' + decl['nominative plural']
-        r += '<div style="font-size:0.6em">' + decl['gender'] + '</div>'
-        r += decl['genitive singular'] + '/' + decl['genitive plural']
-        r += '</div>'
-    elif ('nominative singular' in decl and
-          'genitive singular' in decl):
-        r += f'<div class="{gender[:2]} d{gender[2:]}">'
-        r += decl['nominative singular']
-        r += '<div style="font-size:0.6em">' + decl['gender'] + '</div>'
-        r += decl['genitive singular']
-        r += '</div>'
-    return r
 
 
 def populate_genitive_verbal_noun(limit=-1, refresh=True):
