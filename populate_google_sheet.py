@@ -147,7 +147,7 @@ def populate_non_EN(limit=-1):
     if rows:
         count = 0
         values = []
-        range_start = None
+        range_start = range_end = None
         for n, row in enumerate(rows):
             cell_no = n + 2  # +1 for 0 index, +1 as we are skipping header
             insert_now = False
@@ -188,13 +188,18 @@ def populate_non_EN(limit=-1):
                         genders.append(sense['gender'])
 
                 PoS = join_parts_of_speech(parts_of_speech)
+                GenitiveVN = '\n'.join(genitive_vns)
 
-                if PoS or genders or genitive_vn:
-                    update = {
-                        'PoS': PoS,
-                        'Gender': '\n'.join(genders),
-                        'GenitiveVN': '\n'.join(genitive_vn),
-                    }
+                update = {}
+                if GenitiveVN and GenitiveVN != row.GenitiveVN:
+                    update['GenitiveVN'] = GenitiveVN
+                if genders and \
+                   (not row.Gender or row.Gender in ['nf', 'nm']):
+                    update['Gender'] = '\n'.join(genders)
+                if PoS and ('[AUTO]' in row.EN or not row.PoS):
+                    update['PoS'] = PoS
+
+                if update:
                     column_start = False
                     column_end = False
                     value = []
@@ -215,10 +220,20 @@ def populate_non_EN(limit=-1):
                             # keep current value
                             vfill.append(getattr(row, C))
 
+                    COL_START = COLUMN_KEY[column_start]
+                    COL_END = COLUMN_KEY[column_end]
+                    if values and \
+                       ((range_start and not range_start.startswith(COL_START))
+                        or (range_end and not range_end.startswith(COL_END))):
+                        # change of column width
+                        insert_block(sheet, range_start + ':' + range_end, values)
+                        values = []
+                        range_start = None
+
                     values.append(value)
                     if not range_start:
-                        range_start = column_start + str(cell_no)
-                    range_end = column_end + str(cell_no)
+                        range_start = COL_START + str(cell_no)
+                    range_end = COL_END + str(cell_no)
                     count += 1
                 else:
                     insert_now = True
