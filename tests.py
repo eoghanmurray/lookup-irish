@@ -94,3 +94,6 @@ if __name__ == '__main__':
 
     # different senses king/forearm with nf4/nm4
     get_teanglann_definition('rí')
+
+    # noun, but adjective there also (not currently picking that up
+    get_teanglann_definition('indiach')

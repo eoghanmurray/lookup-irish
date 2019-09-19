@@ -18,6 +18,7 @@ def get_teanglann_senses(
         format='html'):
 
     candidates = get_foclóir_candidates(word)
+    candidates = [c.lower() for c in candidates]
     if verbose:
         print()
         print(f'{Back.YELLOW}{Fore.BLACK}{word}'
@@ -58,25 +59,30 @@ def get_teanglann_senses(
             types['Preposition'] = True
         if first_line.find(title="adjective"):
             types['Adjective'] = True
-            gender = 'a'
+            gender_a = 'a'
             dec = first_line.find(title="adjective").next_sibling
             # to check: think it only goes up to a3
             if dec and dec.strip().strip('.') in ['1', '2', '3', '4']:
-                gender += dec.strip().strip('.')
+                gender_a += dec.strip().strip('.')
             else:
                 soup_fb = get_definition_soup(word, 'teanglann', lang='ga-fb')
                 entry_fb = soup_fb.find(class_='entry')
                 if soup_fb.find(text='aid3'):
-                    gender += '3'
+                    gender_a += '3'
                 elif soup_fb.find(text='aid2'):
-                    gender += '2'
+                    gender_a += '2'
                 elif soup_fb.find(text='aid1'):
-                    gender += '1'
+                    gender_a += '1'
                 elif not soup_fb.find(text='aid'):
                     # 'thar' spurious adj. in following:
                     # ' of <span title="adjective">a</span> general nature'
                     del types['Adjective']
-                    gender = None
+                    gender_a = None
+            if gender_a:
+                if not gender:
+                    gender = gender_a
+                else:
+                    gender += '\n' + gender_a
         if first_line.find(title="transitive verb"):
             if 'Verb' not in types:
                 types['Verb'] = OrderedDict()
