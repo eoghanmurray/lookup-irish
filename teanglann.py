@@ -441,8 +441,9 @@ but don't want to
                     # 'smaoinimh' is what we want (don't understand
                     # 'smaointe' as 'genitive singular as verbal noun')
                     d_word = d_word[14:].lstrip()
-                if d_word.endswith('in certain phrases'):
-                    # e.g. cara
+                if d_word.endswith('in certain phrases') or \
+                   d_word.endswith('used in phrases'):
+                    # e.g. cara or rí
                     # 'genitive plural': 'carad in certain phrases'
                     # ignore
                     continue
