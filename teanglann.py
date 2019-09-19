@@ -35,6 +35,14 @@ def get_teanglann_senses(
         types = OrderedDict()  # using as ordered set
         if first_line.find(title="feminine") and \
            first_line.find(title="masculine"):
+            # 'cara' has '(Var:feminine)' at the end
+            for g in [r'masculine', r'feminine']:
+                r = re.compile(r'var(?:iant)*:\s*' + g, re.I)
+                if g not in re.sub(r, '', bs4_get_text(first_line)):
+                    first_line.find(title=g).extract()
+
+        if first_line.find(title="feminine") and \
+           first_line.find(title="masculine"):
             # 'thar': has 'thairis (m) thairsti (f)' and is not a noun
             pass
         elif (first_line.find(title="feminine") or
