@@ -44,6 +44,8 @@ http://nualeargais.ie/gnag/artikel.htm
     """
     preceding_s = word[0] == 's'
     preceding_a_vowel = word[0] in 'aeiouáéíóú'
+    preceding_upcase_vowel = word[0] in 'AEIOUÁÉÍÓÚ'
+    preceding_a_vowel = preceding_a_vowel or preceding_upcase_vowel
     preceding_dt = word[0] in 'dt'
     preceding_a_consonant = \
         not preceding_s and \
@@ -68,7 +70,10 @@ http://nualeargais.ie/gnag/artikel.htm
             ret += word
         elif preceding_a_vowel:
             if genitive:
-                ret += 'n-' + word
+                if preceding_upcase_vowel:
+                    ret += 'n' + word
+                else:
+                    ret += 'n-' + word
             else:
                 ret += 'h' + word
         elif genitive:
@@ -80,7 +85,7 @@ http://nualeargais.ie/gnag/artikel.htm
             ret += word
         else:
             if preceding_s and \
-               word[1] in 'aeiouáéíóúlnr' and (
+               word[1].lower() in 'aeiouáéíóúlnr' and (
                     (nominative and nf) or
                     (genitive and nm)):
                 ret += '<i>t</i>' + word
@@ -89,7 +94,10 @@ http://nualeargais.ie/gnag/artikel.htm
                 ret += '<i>h</i>' + word
             elif (preceding_a_vowel and
                   nm and nominative):
-                ret += '<i>t</i>-' + word
+                if preceding_upcase_vowel:
+                    ret += '<i>t</i>' + word
+                else:
+                    ret += '<i>t</i>-' + word
             elif preceding_a_consonant and (
                     (nm and genitive) or
                     (nf and nominative)):

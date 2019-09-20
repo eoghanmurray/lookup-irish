@@ -97,3 +97,6 @@ if __name__ == '__main__':
 
     # noun, but adjective there also (not currently picking that up
     get_teanglann_definition('indiach')
+
+    # an tEorpach/na hEorpaigh & an Eorpaigh/na nEorpach
+    get_teanglann_definition('indiach')

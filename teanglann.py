@@ -647,10 +647,11 @@ def join_parts_of_speech(type_dict):
 
 def clean_text(text, word):
     text = text.replace('\n', '')
-    text = text.replace('~', word)
     text = re.sub('[ ]{2,}', ' ', text).strip()  # repeated spaces
     text = text.rstrip('.')  # trailing dots
-    return text.lower().lstrip(')').rstrip('(')
+    text = text.lower().lstrip(')').rstrip('(')
+    # only replace now as don't want to change case of e.g. Eorpach
+    return text.replace('~', word)
 
 
 def fill_in_dash(dash_suffix, word):
