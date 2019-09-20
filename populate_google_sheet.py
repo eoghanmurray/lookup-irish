@@ -175,11 +175,12 @@ def populate_non_EN(limit=-1):
                             parts_of_speech[k] = v
                     if (sense.get('verbal-noun', None) and
                         'Verb' in row.PoS and 'ransitive' in row.PoS):
-                        inf = 'ag ' + sense['verbal-noun']
-                        if inf in genitive_vns:
-                            print(f'CHECK 5: {row.GA} dupe vn? {inf}')
-                        if inf not in genitive_vns:
-                            genitive_vns.append(inf)
+                        for vt in sense['verbal-noun-examples'][:3]:
+                            inf = '<div class="vn">' + vt + '</div>'
+                            if inf in genitive_vns:
+                                print(f'CHECK 5: {row.GA} dupe vn? {inf}')
+                            if inf not in genitive_vns:
+                                genitive_vns.append(inf)
                     if sense['gender'] and \
                        'Noun' in sense['types'] and \
                        'Noun' in row.PoS:

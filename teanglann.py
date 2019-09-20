@@ -10,6 +10,7 @@ from itertools import permutations
 
 from irish_lang import apply_gender_hints, apply_article
 from irish_lang import format_declensions
+from irish_lang import lenite, eclipse
 from focloir import get_foclóir_candidates, foclóir_score_definition
 
 
@@ -234,7 +235,30 @@ def get_teanglann_senses(
 
                 if 'Verb' in types:
                     vn = assign_verbal_noun(word)
+                    if sense.get('verbal-noun', vn) != vn:
+                        manual_debug()
+                    if vn:
+                        # http://nualeargais.ie/gnag/verbnom1.htm
+                        vnvts = [
+                            'ag ' + vn,
+                            'a ' + lenite(vn),
+                            'le ' + vn,
+                            'do mo ' + lenite(vn),
+                            'do do ' + lenite(vn),
+                            'á ' + vn,
+                            'á ' + lenite(vn),
+                            'dár ' + eclipse(vn),
+                            'do bhur ' + eclipse(vn),
+                            'á ' + eclipse(vn),
+                        ]
+                        vn_examples = []
+                        for vt in vnvts:
+                            if vt in raw_text:
+                                vn_examples.append((raw_text.count(vt), vt))
+                        vn_examples.sort(reverse=True)
+                        sense['verbal-noun-examples'] = [vte[1] for vte in vn_examples]
                     sense['verbal-noun'] = vn
+
                 if 'Noun' in types:
                     p = sense_assign_plural_genitive(
                         word, first_line, gender
