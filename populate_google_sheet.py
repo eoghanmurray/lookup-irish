@@ -163,8 +163,9 @@ def populate_non_EN(limit=-1):
                 for sense in senses:
                     use_sense = False
                     for d in sense['definitions']:
-                        if not row.EN or d in row.EN:
-                            use_sense = True
+                        for sd in d.split('/'):  # saol life/world vs. life/time/world
+                            if not row.EN or sd in row.EN:
+                                use_sense = True
                     if not use_sense:
                         continue
                     for k, v in sense['types'].items():
