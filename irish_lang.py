@@ -61,7 +61,12 @@ http://nualeargais.ie/gnag/artikel.htm
         if nf:
             ret = '<i>na</i> '
         else:
-            ret = '<i>an</i> '
+            # although this shows that it's a genitive
+            # of a masculine noun, the .weak class
+            # here allows us to turn off masculine highlighting,
+            # from the pov that a singular article is 'the norm'
+            # i.e. what you'd expect from the nominative
+            ret = '<i class="weak">an</i> '
     else:
         ret = 'an '
     if 'plural' in part_of_speech:
@@ -105,6 +110,7 @@ http://nualeargais.ie/gnag/artikel.htm
             else:
                 ret += word
     if not html:
+        ret = ret.replace('<i class="weak">', '')
         return ret.replace('<i>', '').replace('</i>', '')
     return ret
 
@@ -252,5 +258,6 @@ def format_declensions(decl, gender=None, format='html'):
             r = r.replace('<i>', Fore.MAGENTA)
         else:
             r = r.replace('<i>', Fore.BLUE)
+            r = r.replace('<i class="weak">', Back.BLACK)
         r = r.replace('</i>', Style.RESET_ALL)
     return r
