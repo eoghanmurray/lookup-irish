@@ -436,7 +436,8 @@ def assign_plural_genitive(noun, html=True):
 def sense_assign_plural_genitive(noun, first_line, gender, html=True):
     """
 Could scrape e.g. https://www.teanglann.ie/en/gram/teist
-but don't want to
+but don't want the extra request
+and this method can identify strong/weak plurals
     """
     flt = clean_text(bs4_get_text(first_line), noun)
     parts = {'nominative singular': noun}
@@ -446,9 +447,28 @@ but don't want to
         'genitive plural',
         'plural',
     ]
+    strong_plural_endings = [
+        'í',
+        'acha',
+        'anna',
+        'ánna',  # íomhánna
+        'lta',  # síolta
+        'onna',  # suíonna
+        'tha',
+        'ocha',  # claí -> claíocha
+        'thra', # briathar -> briathra
+        'nta', # braon -> braonta, tonn -> tonnta, srian -> srianta, pian -> pianta
+        # TODO: incomplete
+    ]
     for i in range(len(part_names), 0, -1):
         for cs in permutations(part_names, i):
             ct = ' & '.join(cs)
+            if ct in flt and ct == 'plural' and \
+               ct not in flt.\
+               replace('nominative plural', '').\
+               replace('genitive plural', '').\
+               split(')')[0]:  # trealamh
+                continue
             if ct in flt:
                 rhs = flt.split(ct)[1]
                 rhs_words = re.split('[,;)(] *', rhs)
@@ -471,6 +491,15 @@ but don't want to
                     cs.remove('plural')
                     cs.append('nominative plural')
                     cs.append('genitive plural')
+                    # strong plurals have to maintain
+                    # their endings across all cases
+                    # https://en.wikipedia.org/wiki/Irish_declension
+                    parts['plural strength'] = 'strong'
+                    if d_word.endswith('a') and not any(d_word.endswith(e) for e in strong_plural_endings):
+                        print('CHECK PLURAL 2:', noun, d_word)
+                    if d_word[-2:] == noun[-2:]:
+                        # weak?
+                        print('CHECK PLURAL 3:', noun, d_word)
                 for cp in cs:
                     if cp not in parts:
                         parts[cp] = d_word
@@ -487,6 +516,18 @@ but don't want to
     apply_gender_hints(noun, gender, parts)
     for k, w in parts.items():
         parts[k] = apply_article(w, gender, k)
+    has_strong_ending = False
+    if 'nominative plural' in parts:
+        for ending in strong_plural_endings:
+            if parts['nominative plural'].endswith(ending):
+                has_strong_ending = True
+                break
+    if 'plural strength' not in parts:
+        parts['plural strength'] = 'unknown'
+    if parts.get('genitive plural', None) == parts['nominative singular']:
+        if has_strong_ending:
+            print('CHECK PLURAL 1:', parts['nominative plural'], parts['genitive plural'])
+        parts['plural strength'] = 'weak'
     return parts
 
 

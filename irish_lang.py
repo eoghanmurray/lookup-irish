@@ -233,6 +233,31 @@ def format_declensions(decl, gender=None, format='html'):
             raise Exception('Need a gender set to properly set declensions')
         gender = decl['gender']
     middle = gender
+    if False and 'nominative plural' in decl:
+        is_weak_plural = decl['plural strength'] == 'weak'
+        is_strong_plural = decl['plural strength'] == 'strong'
+        # http://nualeargais.ie/gnag/subst2.htm#oben
+        # weak plural is almost exclusively present in
+        # the 1st + 2nd declension, but is quite common.
+        if len(gender) > 2 and (
+                (is_weak_plural and gender[-1] not in ['1', '2']) or
+                (is_strong_plural and gender[-1] in ['1', '2'])):
+                middle += ' <u class="nm12">but</u>'
+        if is_weak_plural:
+            middle += ' weak plural'
+        elif is_strong_plural:
+            middle += ' strong plural'
+    word = decl['nominative singular'][3:]  # remove 'an '
+    if 'nominative singular' in decl and word in [
+            # http://nualeargais.ie/gnag/0dekl.htm
+            'bean', 'deirfiúr', 'siúr', 'dia', 'lá', 'leaba', 'mí', 'olann', 'talamh',
+            # https://en.wikipedia.org/wiki/Irish_declension
+            'deoch', 'muir', 'olann', 'teach',
+    ]:
+        if len(gender) != 2:
+            print(f'CHECK irregular:', gender, decl['nominative singular'])
+        middle += ', <u class="irr">irregular</u>'
+
     if format == 'html':
         middle = '<div class="decl">' + middle + '</div>'
     elif format == 'bash':
