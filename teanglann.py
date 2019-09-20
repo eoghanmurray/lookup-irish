@@ -443,7 +443,8 @@ but don't want to
     part_names = [
         'nominative plural',
         'genitive singular',
-        'genitive plural'
+        'genitive plural',
+        'plural',
     ]
     for i in range(len(part_names), 0, -1):
         for cs in permutations(part_names, i):
@@ -465,6 +466,11 @@ but don't want to
                     continue
                 if d_word.startswith('-'):
                     d_word = fill_in_dash(d_word, noun)
+                if 'plural' in cs:
+                    cs = list(cs)
+                    cs.remove('plural')
+                    cs.append('nominative plural')
+                    cs.append('genitive plural')
                 for cp in cs:
                     if cp not in parts:
                         parts[cp] = d_word

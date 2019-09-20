@@ -100,3 +100,6 @@ if __name__ == '__main__':
 
     # an tEorpach/na hEorpaigh & an Eorpaigh/na nEorpach
     get_teanglann_definition('indiach')
+
+    # an t-ionsaí/an ionsaithe & na hionsaithe/na n-ionsaithe
+    get_teanglann_definition('ionsaí')
