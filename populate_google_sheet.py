@@ -198,7 +198,7 @@ def populate_non_EN(limit=-1):
                 GenitiveVN = '\n'.join(genitive_vns)
 
                 update = {}
-                if GenitiveVN and GenitiveVN != row.GenitiveVN:
+                if GenitiveVN != row.GenitiveVN:
                     update['GenitiveVN'] = GenitiveVN
                 if genders and \
                    (not row.Gender or row.Gender in ['nf', 'nm']):
