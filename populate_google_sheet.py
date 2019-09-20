@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import time
 import pickle
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -80,6 +81,8 @@ def insert_block(sheet, range, values):
         valueInputOption='RAW',
         body=body).execute()
     print('{0} cells updated.'.format(result.get('updatedCells')))
+    # TODO something intelligent here to avoid hitting Google API window
+    time.sleep(0.4)
 
 
 def populate_empty(refresh=True, limit=15):
