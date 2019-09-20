@@ -177,7 +177,7 @@ def populate_non_EN(limit=-1):
                         'Verb' in row.PoS and 'ransitive' in row.PoS):
                         inf = 'ag ' + sense['verbal-noun']
                         if inf in genitive_vns:
-                            import pdb; pdb.set_trace();
+                            print(f'CHECK 5: {row.GA} dupe vn? {inf}')
                         if inf not in genitive_vns:
                             genitive_vns.append(inf)
                     if sense['gender'] and \
@@ -199,7 +199,16 @@ def populate_non_EN(limit=-1):
                     update['GenitiveVN'] = GenitiveVN
                 if genders and \
                    (not row.Gender or row.Gender in ['nf', 'nm']):
-                    update['Gender'] = '\n'.join(genders)
+                    ng = '\n'.join(genders)
+                    if row.Gender and len(genders) != len(row.Gender.split('\n')):
+                        print(f'CHECK 1: {row.GA} not updating {row.Gender} to {ng}')
+                    elif 'nf' in row.Gender and 'nf' not in ng:
+                        print(f'CHECK 2: {row.GA} not updating {row.Gender} to {ng}')
+                    elif 'nm' in row.Gender and 'nm' not in ng:
+                        print(f'CHECK 3: {row.GA} not updating {row.Gender} to {ng}')
+                    else:
+                        update['Gender'] = ng
+
                 if PoS and ('[AUTO]' in row.EN or not row.PoS):
                     update['PoS'] = PoS
 
@@ -240,6 +249,8 @@ def populate_non_EN(limit=-1):
                     range_end = COL_END + str(cell_no)
                     count += 1
                 else:
+                    if genitive_vns and row.GenitiveVN != '\n'.join(genitive_vns):
+                        print(f'CHECK 4: {row.GA} missed update', '-'.join(genitive_vns))
                     insert_now = True
             else:
                 insert_now = True
