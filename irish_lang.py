@@ -115,7 +115,7 @@ http://nualeargais.ie/gnag/artikel.htm
     return ret
 
 
-def apply_declension_hints(singular, actual_gender, wd=None):
+def apply_gender_hints(singular, actual_gender, wd=None):
 
     # numbers show confidence i.e. count(nf) / (count(nf) + count(nm))
     # data collected in noun-declensions.json

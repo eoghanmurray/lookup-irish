@@ -8,7 +8,7 @@ from colorama import Fore, Back, Style
 from collections import OrderedDict
 from itertools import permutations
 
-from irish_lang import apply_declension_hints, apply_article
+from irish_lang import apply_gender_hints, apply_article
 from irish_lang import format_declensions
 from focloir import get_foclóir_candidates, foclóir_score_definition
 
@@ -484,7 +484,7 @@ but don't want to
             parts['nominative plural'] = d_word
             if 'genitive plural' not in parts:
                 parts['genitive plural'] = d_word
-    apply_declension_hints(noun, gender, parts)
+    apply_gender_hints(noun, gender, parts)
     for k, w in parts.items():
         parts[k] = apply_article(w, gender, k)
     return parts
