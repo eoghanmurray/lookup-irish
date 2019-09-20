@@ -189,9 +189,10 @@ def populate_non_EN(limit=-1):
                         if sense.get('genitive-plural', None):
                             genitive_vns.append(sense['genitive-plural'])
                     if sense['gender'] and \
-                       'Noun' in sense['types'] and \
-                       'Noun' in row.PoS:
-                        genders.append(sense['gender'])
+                       'Adjective' in sense['types'] and \
+                       'Adjective' in row.PoS:
+                        if sense['gender'] not in genders:
+                            genders.append(sense['gender'])
 
                 PoS = join_parts_of_speech(parts_of_speech)
                 GenitiveVN = '\n'.join(genitive_vns)
