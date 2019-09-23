@@ -7,6 +7,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from collections import namedtuple
 import os
+import argparse
 
 from teanglann import get_teanglann_senses
 from teanglann import assign_verbal_noun, assign_plural_genitive
@@ -106,7 +107,9 @@ for the purposes of the 6500 word list
     return EN
 
 
-def populate_empty(refresh=True, limit=15):
+def populate_empty(refresh=True, limit=15, single_GA=None):
+    if single_GA:
+        limit = 1
     sheet = get_sheet()
     rows = get_range(sheet)
     if rows:
@@ -116,7 +119,9 @@ def populate_empty(refresh=True, limit=15):
         for n, row in enumerate(rows):
             cell_no = n + 2  # +1 for 0 index, +1 as we are skipping header
             insert_now = False
-            if row.GA and (
+            if single_GA and row.GA != single_GA:
+                pass
+            elif row.GA and (
                     not row.EN or
                     (refresh and row.EN.endswith('[AUTO]'))
                     ):
@@ -167,7 +172,9 @@ def populate_empty(refresh=True, limit=15):
             insert_block(sheet, range_start + ':' + range_end, values)
 
 
-def populate_non_EN(limit=-1):
+def populate_non_EN(limit=-1, single_GA=None):
+    if single_GA:
+        limit = 1
     sheet = get_sheet()
     rows = get_range(sheet)
     if rows:
@@ -177,7 +184,9 @@ def populate_non_EN(limit=-1):
         for n, row in enumerate(rows):
             cell_no = n + 2  # +1 for 0 index, +1 as we are skipping header
             insert_now = False
-            if row.GA:
+            if single_GA and row.GA != single_GA:
+                pass
+            elif row.GA:
                 senses, teanglann_count, focloir_count = get_teanglann_senses(row.GA, return_counts=True)
 
                 parts_of_speech = {}
@@ -296,21 +305,25 @@ def populate_non_EN(limit=-1):
             insert_block(sheet, range_start + ':' + range_end, values)
 
 
-def populate_AUTO_comparison(refresh=False):
+def populate_AUTO_comparison(refresh=False, single_GA=None):
     """
 Populate the AUTO column to compare against existing manual entries
     """
+    if single_GA:
+        limit = 1
     sheet = get_sheet()
     rows = get_range(sheet)
     if rows:
         count = 0
         for n, row in enumerate(rows):
             cell_no = n + 2  # +1 for 0 index, +1 as we are skipping header
-            if row.AUTO != '' and not refresh:
-                continue
-            if not row.EN or row.EN.endswith('[AUTO]'):
-                continue
-            if n > 200:
+            if single_GA and row.GA != single_GA:
+                pass
+            elif row.AUTO != '' and not refresh:
+                pass
+            elif not row.EN or row.EN.endswith('[AUTO]'):
+                pass
+            elif n > 200:
                 senses = get_teanglann_senses(row.GA)
 
                 parts_of_speech = {}
@@ -360,10 +373,75 @@ Populate the AUTO column to compare against existing manual entries
                 break
 
 
+parser = argparse.ArgumentParser(
+    description='''Populate source spreadsheet for Anki deck
+requires access to shared spreadsheet or you could
+create your own wordlist in Google Sheets by adding
+heading row:
+GA|PoS|EN|Gender|Tags|GenitiveVN|NTeanglann|NFocloir|AUTO
+and filling in the GA column with words you wish to be translated
+''')
+
+arg = parser.add_argument
+arg(
+    '--non-EN',
+    help='''Update the Gender/GenitiveVN/NTeanglann/NFocloir
+columns based on the PoS column. Always refreshes.''',
+    action='store_true')
+
+arg(
+    '--EN',
+    help='''Fills in translation for empty English cells and updates
+existing cells ending with the text '[AUTO]'
+''',
+    action='store_true')
+
+arg(
+    '--compare',
+    help='Fills in an additional AUTO column with English '
+    'translation for comparison',
+    action='store_true')
+
+arg(
+    '--GA', '--irish-word',
+    help='Selectively update a single word')
+
+arg(
+    '-l', '--limit',
+    type=int,
+    help='''How many spreadsheet rows to update
+set to -1 to update all
+''',
+    default=10
+)
+
+arg(
+    '--no-refresh',
+    help="Don't update existing results",
+    action='store_true',
+    default=False
+)
+
+
 if __name__ == '__main__':
-    if True:
-        populate_non_EN(limit=100)
-    elif False:
-        populate_AUTO_comparison(refresh=True)
-    elif True:
-        populate_empty(limit=-1)
+    args = vars(parser.parse_args())
+    refresh = not args['no_refresh']
+    kwargs = {
+        'limit': args['limit'],
+        'refresh': refresh,
+        'start_row': args['start_row'],
+    }
+    if 'GA' in args:
+        kwargs['single_GA'] = args['GA']
+    if args['non_EN']:
+        if not refresh:
+            print('Error, can\'t turn off refresh for populate_non_EN')
+        else:
+            kwargs.pop('refresh')
+            populate_non_EN(**kwargs)
+    elif args['EN']:
+        populate_empty(**kwargs)
+    elif args['compare']:
+        populate_AUTO_comparison(**kwargs)
+    else:
+        print('Please choose --EN, --non-EN or --compare')
