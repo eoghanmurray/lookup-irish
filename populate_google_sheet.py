@@ -8,6 +8,7 @@ from google.auth.transport.requests import Request
 from collections import namedtuple
 import os
 import argparse
+from bs4 import BeautifulSoup
 
 from teanglann import get_teanglann_senses
 from teanglann import assign_verbal_noun, assign_plural_genitive
@@ -191,7 +192,11 @@ def populate_non_EN(limit=-1, single_GA=None):
 
                 parts_of_speech = {}
                 genitive_plural_raw = {}
-                genitive_vns = []
+                # html.parser doesn't add <html><body>
+                genitive_vn_soup = BeautifulSoup(row.GenitiveVN, 'html.parser')
+                for existing in genitive_vn_soup.find_all('div'):
+                    if {'vn', 'nf', 'nm'}.intersection(existing['class']):
+                        existing.extract()
                 genders = []
                 for sense in senses:
                     use_sense = False
@@ -210,10 +215,8 @@ def populate_non_EN(limit=-1, single_GA=None):
                         'Verb' in row.PoS and 'ransitive' in row.PoS):
                         for vt in sense['verbal-noun-examples'][:3]:
                             inf = '<div class="vn">' + vt + '</div>'
-                            if inf in genitive_vns:
-                                print(f'CHECK 5: {row.GA} dupe vn? {inf}')
-                            if inf not in genitive_vns:
-                                genitive_vns.append(inf)
+                            inf = BeautifulSoup(inf, 'html.parser')
+                            genitive_vn_soup.append(inf)
                     if sense['gender'] and \
                        'Noun' in sense['types'] and \
                        'Noun' in row.PoS:
@@ -221,15 +224,23 @@ def populate_non_EN(limit=-1, single_GA=None):
                             genders.append(sense['gender'])
                         if sense.get('genitive-plural', None):
                             if not genitive_plural_raw:
-                                genitive_vns.append(sense['genitive-plural'])
+                                genitive_vn_soup.append(
+                                    BeautifulSoup(
+                                        sense['genitive-plural'],
+                                        'html.parser'
+                                    )
+                                )
                                 genitive_plural_raw.update(
                                     sense['genitive-plural-raw']
                                 )
                             else:
                                 for k, v in sense['genitive-plural-raw'].items():
                                     if genitive_plural_raw.get(k, None) != v:
-                                        genitive_vns.append(
-                                            sense['genitive-plural']
+                                        genitive_vn_soup.append(
+                                            BeautifulSoup(
+                                                sense['genitive-plural'],
+                                                'html.parser'
+                                            )
                                         )
                                         sgp = sense['genitive-plural-raw']
                                         genitive_plural_raw = sgp
@@ -241,7 +252,7 @@ def populate_non_EN(limit=-1, single_GA=None):
                             genders.append(sense['gender'])
 
                 PoS = join_parts_of_speech(parts_of_speech)
-                GenitiveVN = '\n'.join(genitive_vns)
+                GenitiveVN = str(genitive_vn_soup)
 
                 update = {}
                 if GenitiveVN != row.GenitiveVN:
@@ -302,8 +313,6 @@ def populate_non_EN(limit=-1, single_GA=None):
                     range_end = COL_END + str(cell_no)
                     count += 1
                 else:
-                    if genitive_vns and row.GenitiveVN != '\n'.join(genitive_vns):
-                        print(f'CHECK 4: {row.GA} missed update', '-'.join(genitive_vns))
                     insert_now = True
             else:
                 insert_now = True
