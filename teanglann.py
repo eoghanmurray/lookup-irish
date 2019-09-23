@@ -55,6 +55,9 @@ def get_teanglann_senses(
               first_line.find(title="masculine")):
             types['Noun'] = True
             gender = assign_gender_declension(word, first_line)
+            plural_genitive = sense_assign_plural_genitive(
+                        word, first_line, gender
+                    )
         if first_line.find(title="adverb"):
             types['Adverb'] = True
         if first_line.find(title="preposition"):
@@ -261,10 +264,7 @@ def get_teanglann_senses(
                     sense['verbal-noun'] = vn
 
                 if 'Noun' in types:
-                    p = sense_assign_plural_genitive(
-                        word, first_line, gender
-                    )
-                    gp = format_declensions(p, gender, format)
+                    gp = format_declensions(plural_genitive, gender, format)
                     if sense.get('genitive-plural', gp) != gp:
                         senses.append({
                             'definitions': [],
@@ -276,7 +276,7 @@ def get_teanglann_senses(
                         })
                         sense = senses[-1]
                     sense['genitive-plural'] = gp
-                    sense['genitive-plural-raw'] = p
+                    sense['genitive-plural-raw'] = plural_genitive
 
                 if definition and definition not in sense['definitions']:
                     # could filter/rearrange existing definitions here
