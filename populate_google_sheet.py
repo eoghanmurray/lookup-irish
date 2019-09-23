@@ -85,6 +85,27 @@ def insert_block(sheet, range, values):
     time.sleep(0.4)
 
 
+def filter_some_usages(EN):
+    """
+Some subjective removal of usage types
+for the purposes of the 6500 word list
+    """
+    bad_markers = [
+        # 'ecclesiastical', actually not a good idea:
+        # reachtaire
+        # - rector (ecclesiastical)
+        # - master of ceremonies
+    ]
+    ret = '\n'.join([line for line in EN.split('\n') if
+                      (not line.endswith(')')
+                       or
+                       line.rsplit('(', 1)[1].rstrip(')')
+                       not in bad_markers)])
+    if ret:
+        return ret
+    return EN
+
+
 def populate_empty(refresh=True, limit=15):
     sheet = get_sheet()
     rows = get_range(sheet)
@@ -114,6 +135,8 @@ def populate_empty(refresh=True, limit=15):
                 if not EN:
                     # old return_raw=True
                     EN = '\n'.join([d['raw_definitions'] for d in senses])
+                else:
+                    EN = filter_some_usages(EN)
                 Gender = '\n'.join([d['genders'] for d in senses])
 
                 if EN and EN + '\n[AUTO]' != row.EN:
@@ -296,6 +319,8 @@ Populate the AUTO column to compare against existing manual entries
                 PoS = join_parts_of_speech(parts_of_speech)
 
                 EN = '\n'.join([d['definitions'] for d in senses])
+                EN = filter_some_usages(EN)
+
                 Gender = '\n'.join([d['genders'] for d in senses])
 
                 if False:
