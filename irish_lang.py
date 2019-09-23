@@ -221,7 +221,7 @@ def apply_gender_hints(singular, actual_gender, wd=None):
     if singular[pos] in slender_vowels:
         # slender consonant is determined by slender vowel
         a, b, c = singular[:pos], singular[pos], singular[pos + 1:]
-        if actual_gender != 'nf':
+        if actual_gender[:2] != 'nf':
             wd['nominative singular'] = a + '<u>' + b + '</u>' + c
         else:
             wd['nominative singular'] = a + '<i>' + b + '</i>' + c
