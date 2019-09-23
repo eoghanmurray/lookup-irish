@@ -190,6 +190,7 @@ def populate_non_EN(limit=-1, single_GA=None):
                 senses, teanglann_count, focloir_count = get_teanglann_senses(row.GA, return_counts=True)
 
                 parts_of_speech = {}
+                genitive_plural_raw = {}
                 genitive_vns = []
                 genders = []
                 for sense in senses:
@@ -219,7 +220,20 @@ def populate_non_EN(limit=-1, single_GA=None):
                         if sense['gender'] not in genders:
                             genders.append(sense['gender'])
                         if sense.get('genitive-plural', None):
-                            genitive_vns.append(sense['genitive-plural'])
+                            if not genitive_plural_raw:
+                                genitive_vns.append(sense['genitive-plural'])
+                                genitive_plural_raw.update(
+                                    sense['genitive-plural-raw']
+                                )
+                            else:
+                                for k, v in sense['genitive-plural-raw'].items():
+                                    if genitive_plural_raw.get(k, None) != v:
+                                        genitive_vns.append(
+                                            sense['genitive-plural']
+                                        )
+                                        sgp = sense['genitive-plural-raw']
+                                        genitive_plural_raw = sgp
+                                        break
                     if sense['gender'] and \
                        'Adjective' in sense['types'] and \
                        'Adjective' in row.PoS:

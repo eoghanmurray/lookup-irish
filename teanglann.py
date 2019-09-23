@@ -276,6 +276,7 @@ def get_teanglann_senses(
                         })
                         sense = senses[-1]
                     sense['genitive-plural'] = gp
+                    sense['genitive-plural-raw'] = p
 
                 if definition and definition not in sense['definitions']:
                     # could filter/rearrange existing definitions here
