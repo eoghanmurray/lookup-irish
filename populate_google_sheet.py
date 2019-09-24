@@ -84,7 +84,10 @@ def insert_block(sheet, range, values):
         body=body).execute()
     print('{0} cells updated.'.format(result.get('updatedCells')))
     # TODO something intelligent here to avoid hitting Google API window
-    time.sleep(0.4)
+    # <HttpError 429 when requesting .. returned
+    # "Quota exceeded for quota group 'WriteGroup' and
+    # limit 'USER-100s' of service 'sheets.googleapis.com' for consumer
+    time.sleep(0.8)
 
 
 def filter_some_usages(EN):
