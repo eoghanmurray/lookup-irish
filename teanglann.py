@@ -264,8 +264,11 @@ def get_teanglann_senses(
                         for vt in vnvts:
                             if vt in raw_text:
                                 vn_examples.append((raw_text.count(vt), vt))
-                        vn_examples.sort(reverse=True)
-                        sense['verbal-noun-examples'] = [vte[1] for vte in vn_examples]
+                        if vn_examples:
+                            vn_examples.sort(reverse=True)
+                            sense['verbal-noun-examples'] = [vte[1] for vte in vn_examples]
+                        else:
+                            sense['verbal-noun-examples'] = ['ag ' + vn]
                     sense['verbal-noun'] = vn
 
                 if 'Noun' in types:
