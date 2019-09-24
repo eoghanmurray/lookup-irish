@@ -510,10 +510,14 @@ and this method can identify strong/weak plurals
                replace('genitive plural', '').\
                split(')')[0]:  # trealamh
                 continue
+            rhss = []
             if ct in flt:
-                rhs = flt.split(ct)[1]
+                rhss = flt.split(ct)[1:]
+            for rhs in rhss:
                 rhs_words = re.split('[,;)(] *', rhs)
                 d_word = rhs_words[0].lstrip()
+                if not d_word:
+                    continue
                 if d_word.startswith('as substantive'):
                     # e.g. smaoineamh
                     # 'smaoinimh' is what we want (don't understand

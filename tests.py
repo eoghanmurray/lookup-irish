@@ -110,3 +110,6 @@ if __name__ == '__main__':
     # update GenitiveVN even though there was no AUTO results
     # (this is really a testcase for populate_meta)
     get_teanglann_definition('gné')
+
+    # bad markup; double '(gs. (gs.'
+    get_teanglann_definition('colúnaí')
