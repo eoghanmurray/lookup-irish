@@ -201,6 +201,8 @@ def populate_non_EN(limit=-1, start_row=2, single_GA=None):
                 for existing in genitive_vn_soup.find_all('div'):
                     if {'vn', 'nf', 'nm'}.intersection(existing['class']):
                         existing.extract()
+                if genitive_vn_soup.string:
+                    genitive_vn_soup.string.insert_after('\n')
                 genders = []
                 for sense in senses:
                     use_sense = False
@@ -220,6 +222,8 @@ def populate_non_EN(limit=-1, start_row=2, single_GA=None):
                         for vt in sense['verbal-noun-examples'][:3]:
                             inf = '<div class="vn">' + vt + '</div>'
                             inf = BeautifulSoup(inf, 'html.parser')
+                            if str(genitive_vn_soup):
+                                genitive_vn_soup.append('\n')
                             genitive_vn_soup.append(inf)
                     if sense['gender'] and \
                        'Noun' in sense['types'] and \
@@ -228,6 +232,8 @@ def populate_non_EN(limit=-1, start_row=2, single_GA=None):
                             genders.append(sense['gender'])
                         if sense.get('genitive-plural', None):
                             if not genitive_plural_raw:
+                                if str(genitive_vn_soup):
+                                    genitive_vn_soup.append('\n')
                                 genitive_vn_soup.append(
                                     BeautifulSoup(
                                         sense['genitive-plural'],
@@ -240,6 +246,8 @@ def populate_non_EN(limit=-1, start_row=2, single_GA=None):
                             else:
                                 for k, v in sense['genitive-plural-raw'].items():
                                     if genitive_plural_raw.get(k, None) != v:
+                                        if str(genitive_vn_soup):
+                                            genitive_vn_soup.append('\n')
                                         genitive_vn_soup.append(
                                             BeautifulSoup(
                                                 sense['genitive-plural'],
