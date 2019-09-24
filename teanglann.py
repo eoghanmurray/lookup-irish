@@ -44,6 +44,8 @@ def get_teanglann_senses(
                 if g not in re.sub(r, '', bs4_get_text(first_line)):
                     first_line.find(title=g).extract()
 
+        # TODO: should look at first_line only up to opening parenthesis
+
         if first_line.find(title="pronoun"):
             # sé/sí are not nouns
             types['Pronoun'] = True
@@ -101,6 +103,9 @@ def get_teanglann_senses(
             types['Conjugation'] = True
         if first_line.find(title="prefix"):
             types['Prefix'] = True
+        if 'Verb' in types and 'Noun' in types:
+            del types['Noun']
+            gender = None
 
         type_sig = ' & '.join(types.keys())
         sense = senses[-1]

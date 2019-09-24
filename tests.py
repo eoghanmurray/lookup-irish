@@ -103,3 +103,6 @@ if __name__ == '__main__':
 
     # an t-ionsaí/an ionsaithe & na hionsaithe/na n-ionsaithe
     get_teanglann_definition('ionsaí')
+
+    # one noun (nf) and one verb, verb should not include types['Noun']=nm
+    get_teanglann_definition('béic')
