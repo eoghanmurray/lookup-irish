@@ -214,6 +214,12 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                             if not row.EN or sd in row.EN:
                                 use_sense = True
                     if not use_sense:
+                        if len(senses) == 1 and \
+                           'types' in sense and \
+                           sense['types'].keys() == {row.PoS} and \
+                           sense['gender'] == row.Gender:
+                            use_sense = True
+                    if not use_sense:
                         continue
                     for k, v in sense['types'].items():
                         if isinstance(v, dict) and k in parts_of_speech:

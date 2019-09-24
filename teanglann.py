@@ -311,6 +311,9 @@ def get_teanglann_senses(
             sense['definitions'] = [d[1] for d in sense['definitions']]
         senses.sort(key='score')
 
+    if not senses[-1]['raw_definitions']:
+        senses = senses[:-1]
+
     if return_counts:
         return senses, sum(len(s['raw_definitions']) for s in senses), len(candidates)
     else:

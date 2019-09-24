@@ -106,3 +106,7 @@ if __name__ == '__main__':
 
     # one noun (nf) and one verb, verb should not include types['Noun']=nm
     get_teanglann_definition('béic')
+
+    # update GenitiveVN even though there was no AUTO results
+    # (this is really a testcase for populate_meta)
+    get_teanglann_definition('gné')
