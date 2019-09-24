@@ -178,7 +178,7 @@ def populate_empty(refresh=True, limit=15, start_row=2, single_GA=None):
             insert_block(sheet, range_start + ':' + range_end, values)
 
 
-def populate_non_EN(limit=-1, start_row=2, single_GA=None):
+def populate_meta(limit=-1, start_row=2, single_GA=None):
     if single_GA:
         limit = 1
     sheet = get_sheet()
@@ -423,17 +423,18 @@ and filling in the GA column with words you wish to be translated
 ''')
 
 arg = parser.add_argument
-arg(
-    '--non-EN',
-    help='''Update the Gender/GenitiveVN/NTeanglann/NFocloir
-columns based on the PoS column. Always refreshes.''',
-    action='store_true')
 
 arg(
-    '--EN',
+    '--translate',
     help='''Fills in translation for empty English cells and updates
 existing cells ending with the text '[AUTO]'
 ''',
+    action='store_true')
+
+arg(
+    '--meta',
+    help='''Update the Gender/GenitiveVN/NTeanglann/NFocloir
+columns based on the PoS column. Always refreshes.''',
     action='store_true')
 
 arg(
@@ -481,15 +482,15 @@ if __name__ == '__main__':
     }
     if 'GA' in args:
         kwargs['single_GA'] = args['GA']
-    if args['non_EN']:
+    if args['meta']:
         if not refresh:
-            print('Error, can\'t turn off refresh for populate_non_EN')
+            print('Error, can\'t turn off refresh for populate_meta')
         else:
             kwargs.pop('refresh')
-            populate_non_EN(**kwargs)
-    elif args['EN']:
+            populate_meta(**kwargs)
+    elif args['translate']:
         populate_empty(**kwargs)
     elif args['compare']:
         populate_AUTO_comparison(**kwargs)
     else:
-        print('Please choose --EN, --non-EN or --compare')
+        print('Please choose --translate, --meta or --compare')
