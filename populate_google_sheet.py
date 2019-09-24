@@ -108,7 +108,7 @@ for the purposes of the 6500 word list
     return EN
 
 
-def populate_empty(refresh=True, limit=15, single_GA=None):
+def populate_empty(refresh=True, limit=15, start_row=2, single_GA=None):
     if single_GA:
         limit = 1
     sheet = get_sheet()
@@ -119,6 +119,8 @@ def populate_empty(refresh=True, limit=15, single_GA=None):
         range_start = None
         for n, row in enumerate(rows):
             cell_no = n + 2  # +1 for 0 index, +1 as we are skipping header
+            if cell_no < start_row:
+                continue
             insert_now = False
             if single_GA and row.GA != single_GA:
                 pass
@@ -173,7 +175,7 @@ def populate_empty(refresh=True, limit=15, single_GA=None):
             insert_block(sheet, range_start + ':' + range_end, values)
 
 
-def populate_non_EN(limit=-1, single_GA=None):
+def populate_non_EN(limit=-1, start_row=2, single_GA=None):
     if single_GA:
         limit = 1
     sheet = get_sheet()
@@ -184,6 +186,8 @@ def populate_non_EN(limit=-1, single_GA=None):
         range_start = range_end = None
         for n, row in enumerate(rows):
             cell_no = n + 2  # +1 for 0 index, +1 as we are skipping header
+            if cell_no < start_row:
+                continue
             insert_now = False
             if single_GA and row.GA != single_GA:
                 pass
@@ -328,7 +332,7 @@ def populate_non_EN(limit=-1, single_GA=None):
             insert_block(sheet, range_start + ':' + range_end, values)
 
 
-def populate_AUTO_comparison(refresh=False, single_GA=None):
+def populate_AUTO_comparison(refresh=False, single_GA=None, start_row=2):
     """
 Populate the AUTO column to compare against existing manual entries
     """
@@ -340,6 +344,8 @@ Populate the AUTO column to compare against existing manual entries
         count = 0
         for n, row in enumerate(rows):
             cell_no = n + 2  # +1 for 0 index, +1 as we are skipping header
+            if cell_no < start_row:
+                continue
             if single_GA and row.GA != single_GA:
                 pass
             elif row.AUTO != '' and not refresh:
@@ -436,6 +442,14 @@ arg(
 set to -1 to update all
 ''',
     default=10
+)
+
+arg(
+    '--start-row',
+    type=int,
+    help='''Don't restart from the top, but upon this row
+''',
+    default=2
 )
 
 arg(
