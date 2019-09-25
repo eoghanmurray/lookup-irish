@@ -34,7 +34,7 @@ hr {
 .en-container {
     font-size: 1em;
     list-style-type: circle;
-    padding: 100px 50px;
+    padding: 100px 20px;
 }
 .en-container li {
     text-align: left;
