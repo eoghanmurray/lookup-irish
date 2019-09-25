@@ -82,6 +82,9 @@ hr {
 }
 
 .speech-container {
+    margin-top: 40px;
+    font-size: 0.6em;
+    color: grey;
     padding: 0 0 20px 0;
 }
 
