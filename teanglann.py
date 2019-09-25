@@ -50,7 +50,8 @@ def get_teanglann_senses(
             # sé/sí are not nouns
             types['Pronoun'] = True
         elif first_line.find(title="feminine") and \
-           first_line.find(title="masculine"):
+           first_line.find(title="masculine") and \
+           word != 'talamh':
             # 'thar': has 'thairis (m) thairsti (f)' and is not a noun
             pass
         elif (first_line.find(title="feminine") or
@@ -482,6 +483,14 @@ and this method can identify strong/weak plurals
     """
     flt = clean_text(bs4_get_text(first_line), noun)
     parts = {'nominative singular': noun}
+    if noun == 'talamh':
+        # an exception http://nualeargais.ie/gnag/0dekl.htm
+        parts['nominative plural'] = 'tailte'
+        parts['genitive plural'] = 'tailte'
+        parts['plural strength'] = 'strong'
+        parts['gender'] = 'nf'
+        parts['genitive singular'] = 'talún (also m. variant: talaimh)'
+        return parts
     part_names = [
         'nominative plural',
         'genitive singular',
