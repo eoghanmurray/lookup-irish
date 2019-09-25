@@ -254,8 +254,8 @@ def format_declensions(decl, gender=None, format='html'):
             # https://en.wikipedia.org/wiki/Irish_declension
             'deoch', 'muir', 'olann', 'teach',
     ]:
-        if len(gender) != 2:
-            print(f'CHECK irregular:', gender, decl['nominative singular'])
+        #if len(gender) != 2:
+        #    print(f'CHECK irregular:', gender, decl['nominative singular'])
         middle += ', <u class="irr">irregular</u>'
 
     if format == 'html':

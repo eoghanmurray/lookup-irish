@@ -551,11 +551,15 @@ and this method can identify strong/weak plurals
                     # their endings across all cases
                     # https://en.wikipedia.org/wiki/Irish_declension
                     parts['plural strength'] = 'strong'
+                    if gender in ['nm1', 'nf2']:
+                        # these are supposed to have weak plurals http://nualeargais.ie/gnag/subst2.htm#plural
+                        print('CHECK PLURAL 4 :', gender, noun, d_word)
                     if d_word.endswith('a') and not any(d_word.endswith(e) for e in strong_plural_endings):
-                        print('CHECK PLURAL 2:', noun, d_word)
+                        pass  # lots of them
+                        #print('CHECK PLURAL 2 nf2:', gender, noun, d_word)
                     if d_word[-2:] == noun[-2:]:
                         # weak?
-                        print('CHECK PLURAL 3:', noun, d_word)
+                        print('CHECK PLURAL 3:', gender, noun, d_word)
                 for cp in cs:
                     if cp not in parts:
                         parts[cp] = d_word
@@ -569,21 +573,23 @@ and this method can identify strong/weak plurals
             parts['nominative plural'] = d_word
             if 'genitive plural' not in parts:
                 parts['genitive plural'] = d_word
-    apply_gender_hints(noun, gender, parts)
-    for k, w in parts.items():
-        parts[k] = apply_article(w, gender, k)
     has_strong_ending = False
     if 'nominative plural' in parts:
         for ending in strong_plural_endings:
             if parts['nominative plural'].endswith(ending):
+                if 'genitive plural' in parts and parts['genitive plural'] != parts['nominative plural']:
+                    print('CHECK PLURAL 5:', gender, parts['nominative plural'], parts['genitive plural'])
                 has_strong_ending = True
                 break
     if 'plural strength' not in parts:
         parts['plural strength'] = 'unknown'
     if parts.get('genitive plural', None) == parts['nominative singular']:
         if has_strong_ending:
-            print('CHECK PLURAL 1:', parts['nominative plural'], parts['genitive plural'])
+            print('CHECK PLURAL 1:', gender, parts['nominative plural'], parts['genitive plural'])
         parts['plural strength'] = 'weak'
+    apply_gender_hints(noun, gender, parts)
+    for k, w in parts.items():
+        parts[k] = apply_article(w, gender, k)
     return parts
 
 
