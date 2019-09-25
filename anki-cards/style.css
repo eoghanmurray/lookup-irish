@@ -46,6 +46,47 @@ hr {
     font-size: 1.5em;
 }
 
+small {
+    margin-top: 0.2em;
+    font-size: 0.7em !important;  /* probably needed to overrule something in normalize.css */
+    display: inline-block;  /* block leads to space between consecutive <small> elements (e.g. 'amach é') not sure why */
+    text-align: left;
+}
+.en-container li:only-child small:first-of-type {
+   margin-top: 1.4em;  /* some space below the main centered text */
+}
+
+aside {
+    font-size: 0.6em;
+    background-color: #f5ffee;
+    text-align: left;
+    padding-left: 0.5em;
+    border-top: 2px solid #493;
+    margin: 1em -20px 0 -20px;
+    padding-left: 2em;
+    padding-right: 0.3em;
+    text-indent: -1.3em;
+}
+aside::before {
+    content: '\261E';  /* the pointy grammar hand */
+    margin-right: 0.3em;
+}
+aside + aside {
+    margin-top: 1em;
+}
+aside ul {
+    margin-top: 0;
+    padding-top: 0;
+}
+aside li {
+    text-indent: 0;
+    margin-left: -1.85em;
+    margin-top: 0;
+}
+aside li small {
+    margin-top: 0;
+}
+
 .ga-container {
     font-weight: bold;
     padding-top: 110px;
