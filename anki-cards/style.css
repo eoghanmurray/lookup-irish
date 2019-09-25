@@ -38,6 +38,7 @@ hr {
 }
 .en-container li {
     text-align: left;
+    hyphens: auto;
 }
 .en-container li:only-child {
     list-style-type: none;
