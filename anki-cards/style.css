@@ -23,6 +23,9 @@ hr {
 }
 
 /*_________________ Specific _*/
+.decl {
+    font-size: 0.6em;
+}
 .attribution {
     font-size: 10pt;
     color: grey;
