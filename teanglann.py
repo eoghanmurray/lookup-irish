@@ -13,6 +13,8 @@ from irish_lang import format_declensions
 from irish_lang import lenite, eclipse
 from focloir import get_foclóir_candidates, foclóir_score_definition
 
+HAIR_SLASH = ' / '  # unicode, equivalent to '&hairsp;/&hairsp;'
+
 
 def get_teanglann_senses(
         word, return_raw=False, sort_by_foclóir=False, verbose=False,
@@ -198,14 +200,14 @@ def get_teanglann_senses(
                     foclóir_min_score = min(foclóir_scores)[0]
                     if False:
                         # debug
-                        defn = '/'.join([
+                        defn = HAIR_SLASH.join([
                             fs[1] + f' ({fs[0]})'
                             for fs in foclóir_scores
                         ])
                     else:
-                        defn = '/'.join([fs[1] for fs in foclóir_scores])
+                        defn = HAIR_SLASH.join([fs[1] for fs in foclóir_scores])
                 else:
-                    defn = '/'.join(defn_words)
+                    defn = HAIR_SLASH.join(defn_words)
                 if len(transs) > 1:
                     formatted_text = f'X{len(transs)} {formatted_text}'
                 sense['raw_definitions'].append(f'[{trans_text}]')
