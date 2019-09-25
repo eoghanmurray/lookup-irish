@@ -29,7 +29,17 @@ hr {
 }
 
 .en-container {
-    padding: 100px 0;
+    font-size: 1.2em;
+    list-style-type: circle;
+    padding: 100px 50px;
+}
+.en-container li {
+    text-align: left;
+}
+.en-container li:only-child {
+    list-style-type: none;
+    text-align: center;
+    font-size: 1.5em;
 }
 
 .ga-container {
