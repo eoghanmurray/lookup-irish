@@ -113,3 +113,6 @@ if __name__ == '__main__':
 
     # bad markup; double '(gs. (gs.'
     get_teanglann_definition('colúnaí')
+
+    # no definition, still want to pull back Noun variants
+    get_teanglann_definition('meangadh')

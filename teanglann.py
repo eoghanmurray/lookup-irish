@@ -245,50 +245,6 @@ def get_teanglann_senses(
                         if verbose:
                             print(f'{label}[{formatted_text}]')
 
-                if 'Verb' in types:
-                    vn = assign_verbal_noun(word)
-                    if sense.get('verbal-noun', vn) != vn:
-                        manual_debug()
-                    if vn:
-                        # http://nualeargais.ie/gnag/verbnom1.htm
-                        vnvts = [
-                            'ag ' + vn,
-                            'a ' + lenite(vn),
-                            'le ' + vn,
-                            'do mo ' + lenite(vn),
-                            'do do ' + lenite(vn),
-                            'á ' + vn,
-                            'á ' + lenite(vn),
-                            'dár ' + eclipse(vn),
-                            'do bhur ' + eclipse(vn),
-                            'á ' + eclipse(vn),
-                        ]
-                        vn_examples = []
-                        for vt in vnvts:
-                            if vt in raw_text:
-                                vn_examples.append((raw_text.count(vt), vt))
-                        if vn_examples:
-                            vn_examples.sort(reverse=True)
-                            sense['verbal-noun-examples'] = [vte[1] for vte in vn_examples]
-                        else:
-                            sense['verbal-noun-examples'] = ['ag ' + vn]
-                    sense['verbal-noun'] = vn
-
-                if 'Noun' in types:
-                    gp = format_declensions(plural_genitive, gender, format)
-                    if sense.get('genitive-plural', gp) != gp:
-                        senses.append({
-                            'definitions': [],
-                            'raw_definitions': [],
-                            'gender': gender,
-                            'type-sig': type_sig,
-                            'types': types.copy(),
-                            'pos': pos,
-                        })
-                        sense = senses[-1]
-                    sense['genitive-plural'] = gp
-                    sense['genitive-plural-raw'] = plural_genitive
-
                 if definition and definition not in sense['definitions']:
                     # could filter/rearrange existing definitions here
                     if 'Prefix' in types:
@@ -306,6 +262,52 @@ def get_teanglann_senses(
                             )
                     else:
                         sense['definitions'].append(definition)
+
+
+            if 'Verb' in types:
+                vn = assign_verbal_noun(word)
+                if sense.get('verbal-noun', vn) != vn:
+                    manual_debug()
+                if vn:
+                    # http://nualeargais.ie/gnag/verbnom1.htm
+                    vnvts = [
+                        'ag ' + vn,
+                        'a ' + lenite(vn),
+                        'le ' + vn,
+                        'do mo ' + lenite(vn),
+                        'do do ' + lenite(vn),
+                        'á ' + vn,
+                        'á ' + lenite(vn),
+                        'dár ' + eclipse(vn),
+                        'do bhur ' + eclipse(vn),
+                        'á ' + eclipse(vn),
+                    ]
+                    vn_examples = []
+                    for vt in vnvts:
+                        if vt in raw_text:
+                            vn_examples.append((raw_text.count(vt), vt))
+                    if vn_examples:
+                        vn_examples.sort(reverse=True)
+                        sense['verbal-noun-examples'] = [vte[1] for vte in vn_examples]
+                    else:
+                        sense['verbal-noun-examples'] = ['ag ' + vn]
+                sense['verbal-noun'] = vn
+
+            if 'Noun' in types:
+                gp = format_declensions(plural_genitive, gender, format)
+                if sense.get('genitive-plural', gp) != gp:
+                    senses.append({
+                        'definitions': [],
+                        'raw_definitions': [],
+                        'gender': gender,
+                        'type-sig': type_sig,
+                        'types': types.copy(),
+                        'pos': pos,
+                    })
+                    sense = senses[-1]
+                sense['genitive-plural'] = gp
+                sense['genitive-plural-raw'] = plural_genitive
+
 
     if sort_by_foclóir:
         for sense in senses:

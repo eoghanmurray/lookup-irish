@@ -214,11 +214,14 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                             if not row.EN or sd in row.EN:
                                 use_sense = True
                     if not use_sense:
-                        if len(senses) == 1 and \
-                           'types' in sense and \
-                           sense['types'].keys() == {row.PoS} and \
-                           (not row.Gender or
-                            sense['gender'] == row.Gender):
+                        if (len(senses) == 1 and
+                            (not row.PoS or (
+                                'types' in sense and
+                                sense['types'].keys() == {row.PoS})
+                            ) and (
+                                not row.Gender or
+                                sense['gender'] == row.Gender
+                            )):
                             use_sense = True
                     if not use_sense:
                         continue
@@ -237,7 +240,7 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                             genitive_vn_soup.append(inf)
                     if sense['gender'] and \
                        'Noun' in sense['types'] and \
-                       'Noun' in row.PoS:
+                       ('Noun' in row.PoS or not row.PoS):
                         if sense['gender'] not in genders:
                             genders.append(sense['gender'])
                         if sense.get('genitive-plural', None):
@@ -478,6 +481,12 @@ arg(
     default=False
 )
 
+arg(
+    '--force-noun',
+    type=int,
+    help='''Populate GenitiveVN column even if we don't find a matching sense''',
+    default=2
+)
 
 if __name__ == '__main__':
     args = vars(parser.parse_args())
