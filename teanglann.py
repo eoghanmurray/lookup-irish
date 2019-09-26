@@ -312,9 +312,12 @@ def get_teanglann_senses(
     if sort_by_foclóir:
         for sense in senses:
             sense['definitions'].sort()
-            sense['score'] = min([d[0] for d in sense['definitions']])
-            sense['definitions'] = [d[1] for d in sense['definitions']]
-        senses.sort(key='score')
+            if sense['definitions']:
+                sense['score'] = min([d[0] for d in sense['definitions']])
+                sense['definitions'] = [d[1] for d in sense['definitions']]
+            else:
+                sense['score'] = 1.1
+        senses.sort(key=lambda x: x['score'])
 
     if not senses[-1]['raw_definitions']:
         senses = senses[:-1]

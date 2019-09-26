@@ -18,6 +18,11 @@ arg(
 arg(
     'irish-word',
     help="Irish word to look up")
+arg(
+    '--focloir-sort', '--foclóir-sort',
+    help="Loose ordering of definitions according to importance of GA word on foclóir.ie",
+    action='store_true'
+)
 
 if __name__ == '__main__':
     args = vars(parser.parse_args())
@@ -25,6 +30,7 @@ if __name__ == '__main__':
         GA = args['irish-word']
         for sense in get_teanglann_senses(GA,
                                           verbose=args['verbose'],
+                                          sort_by_foclóir=args['focloir_sort'],
                                           format='bash'):
             if sense['definitions']:
                 print()
