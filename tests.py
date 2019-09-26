@@ -107,9 +107,14 @@ if __name__ == '__main__':
     # one noun (nf) and one verb, verb should not include types['Noun']=nm
     get_teanglann_definition('béic')
 
-    # update GenitiveVN even though there was no AUTO results
-    # (this is really a testcase for populate_meta)
-    get_teanglann_definition('gné')
+    if False:
+        # testcases for populate_meta (shouldn't be under get_teanglann_definition)
+
+        # update GenitiveVN even though there was no AUTO results
+        get_teanglann_definition('gné')
+
+        # should only be a single unified plural/genitive
+        get_teanglann_definition('aird')
 
     # bad markup; double '(gs. (gs.'
     get_teanglann_definition('colúnaí')

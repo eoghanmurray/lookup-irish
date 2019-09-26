@@ -258,6 +258,9 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                                 )
                             else:
                                 for k, v in sense['genitive-plural-raw'].items():
+                                    if not {'nominative', 'genitive', 'singular', 'plural'}.issuperset(k.split()):
+                                        # don't compare 'plural strength' etc.
+                                        continue
                                     if genitive_plural_raw.get(k, None) != v:
                                         if str(genitive_vn_soup):
                                             genitive_vn_soup.append('\n')
