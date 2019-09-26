@@ -25,7 +25,7 @@ RANGE = '6450-most-frequent-irish-words!A1:I'
 ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 COLUMN_KEY = {}
 COL_HEAD = {}
-
+HAIR_SLASH = ' / '  # unicode, equivalent to '&hairsp;/&hairsp;'
 
 def get_sheet():
     """Shows basic usage of the Sheets API.
@@ -210,7 +210,7 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                 for sense in senses:
                     use_sense = False
                     for d in sense['definitions']:
-                        for sd in d.split('/'):  # saol life/world vs. life/time/world
+                        for sd in d.split(HAIR_SLASH):  # saol life/world vs. life/time/world
                             if not row.EN or sd in row.EN:
                                 use_sense = True
                     if not use_sense:
