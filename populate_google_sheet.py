@@ -135,20 +135,27 @@ def populate_empty(refresh=True, limit=15, start_row=2, single_GA=None):
 
                 parts_of_speech = {}
                 for sense in senses:
-                    for k, v in sense['type'].items():
+                    for k, v in sense['types'].items():
                         if isinstance(v, dict) and k in parts_of_speech:
                             parts_of_speech[k].update(v)
                         else:
                             parts_of_speech[k] = v
                 PoS = join_parts_of_speech(parts_of_speech)
 
-                EN = '\n'.join([d['definitions'] for d in senses])
+                EN = '\n'.join([
+                    '\n'.join(sense['definitions'])
+                    for sense in senses if
+                    sense['definitions']
+                ])
                 if not EN:
                     # old return_raw=True
-                    EN = '\n'.join([d['raw_definitions'] for d in senses])
+                    EN = '\n'.join([
+                        '\n'.join(sense['raw_definitions'])
+                        for sense in senses
+                    ])
                 else:
                     EN = filter_some_usages(EN)
-                Gender = '\n'.join([d['genders'] for d in senses])
+                Gender = '\n'.join([d['gender'] for d in senses if d['gender']])
 
                 if EN and EN + '\n[AUTO]' != row.EN:
                     values.append(
@@ -388,7 +395,11 @@ Populate the AUTO column to compare against existing manual entries
                             parts_of_speech[k] = v
                 PoS = join_parts_of_speech(parts_of_speech)
 
-                EN = '\n'.join([d['definitions'] for d in senses])
+                EN = '\n'.join([
+                    '\n'.join(sense['definitions'])
+                    for sense in senses if
+                    sense['definitions']
+                ])
                 EN = filter_some_usages(EN)
 
                 Gender = '\n'.join([d['genders'] for d in senses])
