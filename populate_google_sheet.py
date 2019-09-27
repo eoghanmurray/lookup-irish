@@ -309,7 +309,9 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                     else:
                         update['Gender'] = ng
 
-                if PoS and ('[AUTO]' in row.EN or not row.PoS):
+                if PoS and (
+                        not row.PoS or
+                        ('[AUTO]' in row.EN and row.PoS != PoS)):
                     update['PoS'] = PoS
 
                 if update:
