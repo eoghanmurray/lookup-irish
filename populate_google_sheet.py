@@ -287,7 +287,7 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                             genders.append(sense['gender'])
 
                 PoS = join_parts_of_speech(parts_of_speech)
-                GenitiveVN = str(genitive_vn_soup)
+                GenitiveVN = str(genitive_vn_soup).strip()
 
                 update = {}
                 if GenitiveVN != row.GenitiveVN:
