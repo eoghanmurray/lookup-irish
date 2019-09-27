@@ -240,11 +240,12 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                     if (sense.get('verbal-noun', None) and
                         'Verb' in row.PoS and 'ransitive' in row.PoS):
                         for vt in sense['verbal-noun-examples'][:3]:
-                            inf = '<div class="vn">' + vt + '</div>'
-                            inf = BeautifulSoup(inf, 'html.parser')
-                            if str(genitive_vn_soup):
-                                genitive_vn_soup.append('\n')
-                            genitive_vn_soup.append(inf)
+                            if vt not in str(genitive_vn_soup):
+                                inf = '<div class="vn">' + vt + '</div>'
+                                inf = BeautifulSoup(inf, 'html.parser')
+                                if str(genitive_vn_soup):
+                                    genitive_vn_soup.append('\n')
+                                genitive_vn_soup.append(inf)
                     if sense['gender'] and \
                        'Noun' in sense['types'] and \
                        ('Noun' in row.PoS or not row.PoS):
