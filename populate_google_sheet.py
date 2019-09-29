@@ -155,6 +155,7 @@ def populate_empty(refresh=True, limit=15, start_row=2, single_GA=None):
                     ])
                 else:
                     EN = filter_some_usages(EN)
+                EN = EN.replace('\n', '<li>\n')
                 Gender = '\n'.join([d['gender'] for d in senses if d['gender']])
 
                 if EN and EN + '\n[AUTO]' != row.EN:
@@ -404,6 +405,7 @@ Populate the AUTO column to compare against existing manual entries
                     sense['definitions']
                 ])
                 EN = filter_some_usages(EN)
+                EN = EN.replace('\n', '<li>\n')
 
                 Gender = '\n'.join([d['genders'] for d in senses])
 
