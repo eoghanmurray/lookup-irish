@@ -578,6 +578,15 @@ and this method can identify strong/weak plurals
             parts['nominative plural'] = d_word
             if 'genitive plural' not in parts:
                 parts['genitive plural'] = d_word
+    if 'dative singular' in flt:
+        p = re.split(r'[,(;] ?(?:dative singular)', flt)
+        if len(p) > 1:
+            rhs_words = re.split('[,;)(] *', p[1])
+            d_word = rhs_words[0].lstrip()
+            d_word = d_word.split('used in certain phrases')[0].rstrip()
+            if d_word.startswith('-'):
+                d_word = fill_in_dash(d_word, noun)
+            parts['dative singular'] = d_word
     has_strong_ending = False
     if 'nominative plural' in parts:
         for ending in strong_plural_endings:
