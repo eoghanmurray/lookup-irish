@@ -147,6 +147,10 @@ def apply_gender_hints(singular, actual_gender, wd=None):
         'lann': 0.89,  # exceptions: nm1 salann, nm1 anlann
         'eog': 1.0,
         'óg': 0.98,  # exception: nm4 dallamullóg
+
+# https://thegeekygaeilgeoir.wordpress.com/2017/08/28/making-sense-of-irish-gender/
+        #'lis' TODO
+        #'chan' TODO
     }
 
     # http://nualeargais.ie/foghlaim/nouns.php?teanga= says
@@ -170,6 +174,13 @@ def apply_gender_hints(singular, actual_gender, wd=None):
         'óir': 0.93,  # ditto nf2:glóir nf3:tóir/onóir/éagóir/altóir/seanmóir
         'úir': 1.0,
         'aeir': 1.0,
+
+# https://thegeekygaeilgeoir.wordpress.com/2017/08/28/making-sense-of-irish-gender/
+        #'eir'  # TODO
+        #'án'  # TODO
+        #'oir'  # TODO
+        #'uir'  # TODO
+        #'ste'  # TODO (exception: timpiste)
     }
     exception_explanation = None
     for ending in strong_feminine_endings:
