@@ -22,7 +22,7 @@ def get_teanglann_senses(
         format='html'):
 
     candidates = get_foclóir_candidates(word)
-    candidates = [c.lower() for c in candidates]
+    candidates = [re.sub(r'ise$', r'ize', c.lower()) for c in candidates]
     if verbose:
         print()
         print(f'{Back.YELLOW}{Fore.BLACK}{word}'
@@ -189,7 +189,9 @@ def get_teanglann_senses(
                 trans_words = re.split('[,;] *', trans_text)
                 defn_words = [
                     tgw for tgw in trans_words
-                    if re.sub(r'\s*\(.*?\)\s*', '', tgw) in candidates
+                    if re.sub(r'ise$', r'ize',
+                              re.sub(r'\s*\(.*?\)\s*', '', tgw))
+                    in candidates
                 ]
                 if sort_by_foclóir and defn_words:
                     foclóir_scores = []
