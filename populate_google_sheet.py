@@ -156,6 +156,8 @@ def populate_empty(refresh=True, limit=15, start_row=2, single_GA=None):
                     if not EN and len(foclóir_candidates) == 1:
                         # choose a definite single one
                         EN = foclóir_candidates[0]
+                    elif foclóir_candidates:
+                        EN += '<br>[' + ' / '.join(foclóir_candidates) + ']'
                 else:
                     EN = filter_some_usages(EN)
                 EN = EN.replace('\n', '<li>\n')
