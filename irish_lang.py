@@ -148,6 +148,15 @@ def apply_gender_hints(singular, actual_gender, wd=None):
         'eog': 1.0,
         'óg': 0.98,  # exception: nm4 dallamullóg
 
+# http://web.archive.org/web/20041022082050/https://www.rte.ie/tv/turasteanga/tt.pdf
+        # (a)íl
+        # (e)áil
+        # (e)ailt
+        # ís
+        # is
+        # chan
+
+
 # https://thegeekygaeilgeoir.wordpress.com/2017/08/28/making-sense-of-irish-gender/
         #'lis' TODO
         #'chan' TODO
@@ -174,6 +183,16 @@ def apply_gender_hints(singular, actual_gender, wd=None):
         'óir': 0.93,  # ditto nf2:glóir nf3:tóir/onóir/éagóir/altóir/seanmóir
         'úir': 1.0,
         'aeir': 1.0,
+
+# http://web.archive.org/web/20041022082050/https://www.rte.ie/tv/turasteanga/tt.pdf
+        # TODO:
+        # (a)ire
+        # éad
+        # (e)adh
+        # éal
+        # éar
+        # ún
+        # úr
 
 # https://thegeekygaeilgeoir.wordpress.com/2017/08/28/making-sense-of-irish-gender/
         #'eir'  # TODO
