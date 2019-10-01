@@ -153,6 +153,9 @@ def populate_empty(refresh=True, limit=15, start_row=2, single_GA=None):
                         '\n'.join(sense['raw_definitions'])
                         for sense in senses
                     ])
+                    if not EN and len(foclóir_candidates) == 1:
+                        # choose a definite single one
+                        EN = foclóir_candidates[0]
                 else:
                     EN = filter_some_usages(EN)
                 EN = EN.replace('\n', '<li>\n')
@@ -203,7 +206,9 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
             if single_GA and row.GA != single_GA:
                 pass
             elif row.GA:
-                senses, teanglann_count, focloir_count = get_teanglann_senses(row.GA, return_counts=True)
+                senses, teanglann_count, foclóir_count, foclóir_candidates = \
+                                      get_teanglann_senses(row.GA,
+                                                           return_counts=True)
 
                 parts_of_speech = {}
                 genitive_plural_raw = {}
@@ -296,8 +301,8 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                     update['GenitiveVN'] = GenitiveVN
                 if teanglann_count and row.NTeanglann != str(teanglann_count):
                     update['NTeanglann'] = teanglann_count
-                if focloir_count and row.NFocloir != str(focloir_count):
-                    update['NFocloir'] = focloir_count
+                if foclóir_count and row.NFocloir != str(foclóir_count):
+                    update['NFocloir'] = foclóir_count
                 if genders and \
                    (not row.Gender or row.Gender in ['nf', 'nm']):
                     ng = '\n'.join(genders)

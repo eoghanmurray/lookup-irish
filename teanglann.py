@@ -22,7 +22,9 @@ def get_teanglann_senses(
         format='html'):
 
     candidates = get_foclóir_candidates(word)
-    candidates = [re.sub(r'ise$', r'ize', c.lower()) for c in candidates]
+    candidates = [c.lower() for c in candidates]
+    foclóir_candidates = candidates[:]
+    candidates = [re.sub(r'ise$', r'ize', c) for c in candidates]
     if verbose:
         print()
         print(f'{Back.YELLOW}{Fore.BLACK}{word}'
@@ -325,7 +327,8 @@ def get_teanglann_senses(
         senses = senses[:-1]
 
     if return_counts:
-        return senses, sum(len(s['raw_definitions']) for s in senses), len(candidates)
+        return (senses, sum(len(s['raw_definitions']) for s in senses),
+                len(candidates), foclóir_candidates)
     else:
         return senses
 
