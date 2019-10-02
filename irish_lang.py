@@ -277,7 +277,6 @@ def format_declensions(decl, gender=None, format='html'):
             middle += ' weak plural'
         elif is_strong_plural:
             middle += ' strong plural'
-    word = decl['nominative singular'][3:]  # remove 'an '
     if 'nominative singular' in decl and word in [
             # http://nualeargais.ie/gnag/0dekl.htm
             'bean', 'deirfiúr', 'siúr', 'dia', 'lá', 'leaba', 'mí', 'olann', 'talamh',

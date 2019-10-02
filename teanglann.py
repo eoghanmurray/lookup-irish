@@ -298,7 +298,7 @@ def get_teanglann_senses(
                 sense['verbal-noun'] = vn
 
             if 'Noun' in types:
-                gp = format_declensions(plural_genitive, gender, format)
+                gp = format_declensions(word, plural_genitive, gender, format)
                 if sense.get('genitive-plural', gp) != gp:
                     senses.append({
                         'definitions': [],
