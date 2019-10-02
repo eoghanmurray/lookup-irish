@@ -9,6 +9,7 @@ from collections import namedtuple
 import os
 import argparse
 from bs4 import BeautifulSoup
+import re
 
 from teanglann import get_teanglann_senses
 from teanglann import assign_verbal_noun, assign_plural_genitive
@@ -225,7 +226,7 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                 for sense in senses:
                     use_sense = False
                     for d in sense['definitions']:
-                        for sd in d.split(HAIR_SLASH):  # saol life/world vs. life/time/world
+                        for sd in re.sub(r'^to ', '', d).split(HAIR_SLASH):  # saol life/world vs. life/time/world
                             if not row.EN or sd in row.EN:
                                 use_sense = True
                     if not use_sense:
@@ -246,7 +247,8 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                         else:
                             parts_of_speech[k] = v
                     if (sense.get('verbal-noun', None) and
-                        'Verb' in row.PoS and 'ransitive' in row.PoS):
+                        (row.PoS.strip() == 'Verb' or
+                         ('Verb' in row.PoS and 'ransitive' in row.PoS))):
                         for vt in sense['verbal-noun-examples'][:3]:
                             if vt not in str(genitive_vn_soup):
                                 inf = '<div class="vn">' + vt + '</div>'
