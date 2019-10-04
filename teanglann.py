@@ -7,6 +7,7 @@ import sys
 from colorama import Fore, Back, Style
 from collections import OrderedDict
 from itertools import permutations
+from copy import copy
 
 from irish_lang import apply_gender_hints, apply_article
 from irish_lang import format_declensions
@@ -493,7 +494,13 @@ Could scrape e.g. https://www.teanglann.ie/en/gram/teist
 but don't want the extra request
 and this method can identify strong/weak plurals
     """
-    flt = clean_text(bs4_get_text(first_line), noun)
+    first_line_mark_split = copy(first_line)
+    trans = first_line_mark_split.find(class_='trans')
+    if trans:
+        trans.replace_with('__xxx_start_trans__')
+    flt = clean_text(bs4_get_text(first_line_mark_split), noun)
+    flt = flt.split('__xxx_start_trans__')[0]
+
     parts = {'nominative singular': noun}
     if noun == 'talamh':
         # an exception http://nualeargais.ie/gnag/0dekl.htm
