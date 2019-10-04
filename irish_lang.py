@@ -257,7 +257,7 @@ def apply_gender_hints(singular, actual_gender, wd=None):
             wd['nominative singular'] = a + '<i>' + b + '</i>' + c
 
 
-def format_declensions(decl, gender=None, format='html'):
+def format_declensions(word, decl, gender=None, format='html'):
     if gender is None:
         if 'gender' not in decl:
             raise Exception('Need a gender set to properly set declensions')
