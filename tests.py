@@ -121,3 +121,6 @@ if __name__ == '__main__':
 
     # no definition, still want to pull back Noun variants
     get_teanglann_definition('meangadh')
+
+    # don't use variant plural breitheamhain
+    assign_plural_genitive('breitheamh')
