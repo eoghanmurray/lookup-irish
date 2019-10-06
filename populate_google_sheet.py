@@ -451,6 +451,43 @@ Populate the AUTO column to compare against existing manual entries
                 break
 
 
+def test_ending(ending):
+    """
+Look at a particular ending to see whether it should be
+highlighted as a typical masculine or feminine ending
+    """
+    sheet = get_sheet()
+    rows = get_range(sheet)
+    feminine = []
+    masculine = []
+    unknown = []
+    total_count = 0
+
+    if not rows:
+        return 'No rows'
+    for n, row in enumerate(rows):
+        if row.GA.endswith(ending) and \
+           'Noun' in row.PoS:
+            total_count += 1
+            if 'nf' in row.Gender:
+                feminine.append(row.GA)
+            if 'nm' in row.Gender:
+                masculine.append(row.GA)
+            elif 'nf' not in row.Gender:
+                unknown.append(row.GA)
+    print(f'Sample: {total_count}')
+    if not total_count:
+        return
+    print('Fem: %.2f (%d)' % (len(feminine)/total_count, len(feminine)))
+    if len(feminine) < 13:
+        print(feminine)
+    print('Mas: %.2f (%d)' % (len(masculine)/total_count, len(masculine)))
+    if len(masculine) < 13:
+        print(masculine)
+    if unknown:
+        print('Unk: %.2f - %r' % (len(unknown)/total_count, unknown))
+
+
 parser = argparse.ArgumentParser(
     description='''Populate source spreadsheet for Anki deck
 requires access to shared spreadsheet or you could
@@ -516,6 +553,11 @@ arg(
     default=2
 )
 
+arg(
+    '--test-ending',
+    help='See what the likelyhood that the top Nouns with this ending have a particular gender')
+
+
 if __name__ == '__main__':
     args = vars(parser.parse_args())
     refresh = not args['no_refresh']
@@ -536,5 +578,7 @@ if __name__ == '__main__':
         populate_empty(**kwargs)
     elif args['compare']:
         populate_AUTO_comparison(**kwargs)
+    elif 'test_ending' in args:
+        test_ending(args['test_ending'])
     else:
         print('Please choose --translate, --meta or --compare')

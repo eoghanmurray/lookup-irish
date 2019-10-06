@@ -150,16 +150,19 @@ def apply_gender_hints(singular, actual_gender, wd=None):
 
 # http://web.archive.org/web/20041022082050/https://www.rte.ie/tv/turasteanga/tt.pdf
         # (a)íl
+        'íl': 1.0,  # 10 in top 6,500, 5 with aíl
         # (e)áil
+        'áil': 1.0,  # nothing in sample, assuming ok
         # (e)ailt
-        # ís
-        # is
-        # chan
+        'ailt': 1.0,  # 7 in top 6,500
+        'ís':  0.85,  # 2 exceptions: ['giúistís', 'Cincís']
+        'is': 0.92,  # 1 exception: faraois
+        # chan  # 2nf vs. 1nm in top 6,500 so not using
 
 
 # https://thegeekygaeilgeoir.wordpress.com/2017/08/28/making-sense-of-irish-gender/
-        #'lis' TODO
-        #'chan' TODO
+        'lis': 1.0,  # only 3 in top 6,500
+        # chan  # 2nf vs. 1nm in top 6,500 so not using
     }
 
     # http://nualeargais.ie/foghlaim/nouns.php?teanga= says
@@ -179,7 +182,8 @@ def apply_gender_hints(singular, actual_gender, wd=None):
         'éir': 0.74,  # 'éir' exceptions are short:
                       # nf2: réir/spéir/comhréir/cléir/mistéir
                       # nf5: céir
-        'eoir': 0.93,  # ditto nf2:deoir nf5:beoir/treoir/míthreoir
+        # eoir covered by 'oir'
+        #'eoir': 0.93,  # ditto nf2:deoir nf5:beoir/treoir/míthreoir
         'óir': 0.93,  # ditto nf2:glóir nf3:tóir/onóir/éagóir/altóir/seanmóir
         'úir': 1.0,
         'aeir': 1.0,
@@ -187,19 +191,21 @@ def apply_gender_hints(singular, actual_gender, wd=None):
 # http://web.archive.org/web/20041022082050/https://www.rte.ie/tv/turasteanga/tt.pdf
         # TODO:
         # (a)ire
-        # éad
+        'ire': 0.83,
+        'éad': 0.9,  # small sample 29
         # (e)adh
-        # éal
-        # éar
-        # ún
-        # úr
+        'adh': 1.0,
+        'éal': 1.0,
+        'éar': 1.0,  # smallsample 21
+        'ún': 1.0,
+        'úr': 0.88,  # exceptions ['deirfiúr', 'siúr']
 
 # https://thegeekygaeilgeoir.wordpress.com/2017/08/28/making-sense-of-irish-gender/
-        #'eir'  # TODO
-        #'án'  # TODO
-        #'oir'  # TODO
-        #'uir'  # TODO
-        #'ste'  # TODO (exception: timpiste)
+        'eir': 0.5,  # only 2 Fem: 'geir', Mas: 'carraeir' but lumping in with 'éir'
+        'án': 0.95,
+        'oir': 0.90,  # exceptions are short ['treoir', 'cathaoir', 'deoir', 'coir', 'aoir', 'beoir']
+        'uir': 1.0,  # sample 1!
+        'ste': 0.82,  # exceptions: ['aiste', 'timpiste', 'tubaiste', 'biaiste']
     }
     exception_explanation = None
     for ending in strong_feminine_endings:
@@ -263,7 +269,7 @@ def format_declensions(word, decl, gender=None, format='html'):
             raise Exception('Need a gender set to properly set declensions')
         gender = decl['gender']
     middle = gender
-    if False and 'nominative plural' in decl:
+    if 'nominative plural' in decl:
         is_weak_plural = decl['plural strength'] == 'weak'
         is_strong_plural = decl['plural strength'] == 'strong'
         # http://nualeargais.ie/gnag/subst2.htm#oben
