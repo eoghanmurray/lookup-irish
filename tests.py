@@ -124,3 +124,6 @@ if __name__ == '__main__':
 
     # don't use variant plural breitheamhain
     assign_plural_genitive('breitheamh')
+
+    # 'half' definition is in a 'II' class="subentry"
+    get_teanglann_definition('leath')

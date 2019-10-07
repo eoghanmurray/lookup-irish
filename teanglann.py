@@ -337,16 +337,24 @@ def get_teanglann_senses(
 def get_teanglann_subentries(word):
     soup = get_definition_soup(word, 'teanglann', lang='ga')
 
+    entry_subentries = []
     for entry in soup.find_all(class_='entry'):
+        entry_subentries.append(entry)
+        for subentry in entry.find_all(class_='subentry'):
+            # following also removes it from first entry
+            entry_subentries.append(subentry.extract())
 
+    for entry in entry_subentries:
         expand_abbreviations(entry)
-        if not entry.text.strip().lower().startswith(word.lower()):
+        if 'subentry' not in entry['class'] and \
+           not entry.text.strip().lower().startswith(word.lower()):
             # https://www.teanglann.ie/en/fgb/i%20measc
             # gives results for 'imeasc' not 'i measc'
             continue
 
-        subentries = [soup.new_tag('div')]
-        subentry_labels = ['']  # first line, may contain a 'main' entry
+        if 'subentry' not in entry['class']:
+            subentries = [soup.new_tag('div')]
+            subentry_labels = ['']  # first line, may contain a 'main' entry
         n = 1
         nxs = 'abcdefghijklmnopqrstuvwxyz'
         nxi = 0
