@@ -46,10 +46,10 @@ There is also a script `populate_google_sheet.py` which is used as part of an An
 
 ---
 
-Some analysis of declensions & strong/weak endings:
+Some analysis of noun declensions & strong/weak endings:
 
 | Declension | % Strong Plural | Sample Size |
-| ---------- | --------------- | ----------- |
+| ---------- |            ---: |        ---: |
 | nm1        |  10%            | 1480        |
 | nf2        |  53%            | 806         |
 | nf3        |  30%            | 464         |
