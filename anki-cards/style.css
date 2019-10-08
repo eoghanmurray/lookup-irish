@@ -102,9 +102,21 @@ aside li small {
 .genitive-vn-container i {
    font-style: normal;
 }
+div + .adj,
+div + .nm,
+div + .nf,
+.adj div:not(.other) + .other,
+div + .vn{
+   margin-top: 0.6em;
+}
+.adj .noun {
+    opacity: 0.35;
+}
+.nf-adj i,
 .genitive-vn-container .nf i {
    color: #f6d;
 }
+.nm-adj i,
 .genitive-vn-container .nm i:not(.weak) {
    color: darkblue;
 }

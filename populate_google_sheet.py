@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 import re
 
 from teanglann import get_teanglann_senses
-from teanglann import assign_verbal_noun, assign_plural_genitive
+from teanglann import assign_adjectival_variants
 from teanglann import join_parts_of_speech
 from irish_lang import format_declensions
 
@@ -218,7 +218,7 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                 # html.parser doesn't add <html><body>
                 genitive_vn_soup = BeautifulSoup(row.GenitiveVN, 'html.parser')
                 for existing in genitive_vn_soup.find_all('div'):
-                    if {'vn', 'nf', 'nm'}.intersection(existing['class']):
+                    if {'vn', 'nf', 'nm', 'adj'}.intersection(existing['class']):
                         existing.extract()
                 if genitive_vn_soup.string:
                     genitive_vn_soup.string.insert_after('\n')
@@ -293,9 +293,15 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                                         break
                     if sense['gender'] and \
                        'Adjective' in sense['types'] and \
-                       'Adjective' in row.PoS:
+                       'Adjective' in row.PoS.replace('Possessive Adj', ''):
                         if sense['gender'] not in genders:
                             genders.append(sense['gender'])
+                        adj = assign_adjectival_variants(row.GA, format='html')
+                        adj = BeautifulSoup(adj, 'html.parser')
+                        if str(adj) not in str(genitive_vn_soup):
+                            if str(genitive_vn_soup):
+                                genitive_vn_soup.append('\n')
+                            genitive_vn_soup.append(adj)
 
                 PoS = join_parts_of_speech(parts_of_speech)
                 GenitiveVN = str(genitive_vn_soup).strip()

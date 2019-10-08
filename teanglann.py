@@ -10,7 +10,7 @@ from itertools import permutations
 from copy import copy
 
 from irish_lang import apply_gender_hints, apply_article
-from irish_lang import format_declensions
+from irish_lang import format_declensions, format_adjectives
 from irish_lang import lenite, eclipse
 from focloir import get_foclóir_candidates, foclóir_score_definition
 
@@ -625,6 +625,42 @@ and this method can identify strong/weak plurals
     for k, w in parts.items():
         parts[k] = apply_article(w, gender, k)
     return parts
+
+
+def assign_adjectival_variants(adjective, format='html'):
+    '''
+rud ceart
+oibiacht cheart
+rudaí cearta
+    '''
+    ret = {}
+    soup_gram = get_definition_soup(adjective, 'teanglann', lang='ga-gram')
+    for gram in soup_gram.find_all(class_="gram"):
+        if not gram.find(text='ADJECTIVE'):
+            continue
+        for section in gram.find_all(class_="section"):
+            k1 = section.find('h2').text.lower()
+            for subsection in section.find_all(class_="subsection"):
+                k2 = '-' + subsection.find('h3').text.lower()
+                for line in subsection.find_all(class_="line"):
+                    lab = line.find(class_="label")
+                    k3 = ''
+                    if lab:
+                        k3 += '-' + lab .text.lower().\
+                            strip('().').replace(' ', '-')
+                    values = line.find_all(class_="value")
+                    if len(values) != 1:
+                        manual_debug()
+                    k = k1 + k2 + k3
+                    k = k.replace(' ', '-')
+                    if k in ret:
+                        if 'primary' in values[0]['class']:
+                            manual_debug()
+                        elif 'ba ' not in values[0].text:
+                            print('ignoring', k, values[0].text)
+                        continue
+                    ret[k] = values[0].text.lower()
+    return format_adjectives(adjective, ret, format=format)
 
 
 def assign_verbal_noun(verb):

@@ -310,14 +310,64 @@ def format_declensions(word, decl, gender=None, format='html'):
     if not r:
         pass
     elif format == 'html':
-        r = f'<div class="{gender[:2]} d{gender[2:]}">' + r + '</div>'
+        r = f'<div class="{gender[:2]} d{gender[2:]}">{r}</div>'
     elif format == 'bash':
-        r = r.replace('<u>', Back.RED)
-        r = r.replace('</u>', Style.RESET_ALL)
-        if 'nf' in gender:
-            r = r.replace('<i>', Fore.MAGENTA)
-        else:
-            r = r.replace('<i>', Fore.BLUE)
-            r = r.replace('<i class="weak">', Back.BLACK)
-        r = r.replace('</i>', Style.RESET_ALL)
+        r = convert_to_bash(r, gender)
+    return r
+
+
+def convert_to_bash(r, gender):
+    r = r.replace('<u>', Back.RED)
+    r = r.replace('</u>', Style.RESET_ALL)
+    if 'nf' in gender:
+        r = r.replace('<i>', Fore.MAGENTA)
+    else:
+        r = r.replace('<i>', Fore.BLUE)
+        r = r.replace('<i class="weak">', Back.BLACK)
+    r = r.replace('</i>', Style.RESET_ALL)
+    return r
+
+
+def format_adjectives(adjective, variants, format='html',
+                      neutral_example_noun='rud',
+                      strong_plural_example_noun='rudaí',
+                      plural_weak_consonant_example_noun='leabhair',
+                      masculine_example_noun='fear',
+                      feminine_example_noun='bean',
+):
+    r = ''
+    if not variants:
+        return r
+    m = variants['singular-nominative-masc']
+    if variants['singular-nominative-masc'] != \
+       variants['singular-nominative-fem']:
+        f = variants['singular-nominative-fem']
+        if f[1] == 'h':
+            f = f[0] + '<i>h</i>' + f[2:]
+        ma = f'<div class="nm-adj"><i class="noun">{masculine_example_noun}</i> {m}</div>'
+        if format == 'bash':
+            ma = convert_to_bash(ma, 'nm')
+        fa = f'<div class="nf-adj"><i class="noun">{feminine_example_noun}</i> {f}</div>'
+        if format == 'bash':
+            fa = convert_to_bash(fa, 'nf')
+        r += ma + '\n' + fa
+    else:
+        r += f'<div class="ex-adj"><span class="noun">{neutral_example_noun}</span> {m}</div>'
+    if 'plural-nominative' not in variants:
+        print('WARNING: missing plural-nominative', adjective, variants)
+    else:
+        sp = variants['plural-nominative']
+        r += f'<div class="ex-adj"><span class="noun">{strong_plural_example_noun}</span> {sp}</div>'
+    if 'plural-nominative-weak-consonants' in variants:
+        # leabhair fhada
+        wc = variants['plural-nominative-weak-consonants']
+        r += f'<div class="ex-adj"><span class="noun">{plural_weak_consonant_example_noun}</span> {wc}</div>'
+    if 'other-forms-comparative' in variants:
+        r += f'<div class="ex-adj other">' + variants['other-forms-comparative'] + '</div>'
+    if 'other-forms-superlative' in variants:
+        r += f'<div class="ex-adj other">' + variants['other-forms-superlative'] + '</div>'
+    if format == 'html':
+        r = f'<div class="adj">{r}</div>'
+    else:
+        r = r.replace('<div', '\n<div')
     return r

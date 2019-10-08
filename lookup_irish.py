@@ -3,7 +3,7 @@
 import sys
 import argparse
 
-from teanglann import get_teanglann_senses
+from teanglann import get_teanglann_senses, assign_adjectival_variants
 
 parser = argparse.ArgumentParser(
     description="Lookup English definitions of Irish words from the wonderful "
@@ -39,4 +39,6 @@ if __name__ == '__main__':
                     print(sense['genitive-plural'])
                 if 'verbal-noun' in sense:
                     print(sense['verbal-noun'])
+                if 'Adjective' in sense['pos']:
+                    print(assign_adjectival_variants(GA))
                 print('\n'.join(sense['definitions']))
