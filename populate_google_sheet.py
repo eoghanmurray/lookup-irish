@@ -584,7 +584,7 @@ if __name__ == '__main__':
         populate_empty(**kwargs)
     elif args['compare']:
         populate_AUTO_comparison(**kwargs)
-    elif 'test_ending' in args:
+    elif args['test_ending']:
         test_ending(args['test_ending'])
     else:
         print('Please choose --translate, --meta or --compare')
