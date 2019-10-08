@@ -127,10 +127,16 @@ div + .vn{
     color: #383838;
 }
 .genitive-vn-container u {
-   /* an exception to some declension rule */
-   text-decoration-color: red;
-   border-bottom:  1px solid red;
+    /* an exception to some declension rule */
+    text-decoration-color: red;
 }
+@supports not (text-decoration-color: red) {
+    .genitive-vn-container u {
+	border-bottom:  1px solid red;
+	text-decoration: none;
+    }
+}
+
 .pronounce-container .columns {
     padding: 10px;
 }
