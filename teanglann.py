@@ -255,7 +255,9 @@ def get_teanglann_senses(
                     if 'Prefix' in types:
                         definition = definition + ' (as prefix)'
                     if sort_by_foclóir:
-                        if 'Verb' in types:
+                        if not defn_words:
+                            sense['definitions'].append((1000, definition))
+                        elif 'Verb' in types:
                             # put all verbs at the end (could do better)
                             sense['definitions'].append((
                                 foclóir_min_score + 10,
