@@ -43,3 +43,22 @@ Then you can lookup a word:
 
 
 There is also a script `populate_google_sheet.py` which is used as part of an Anki deck: https://ankiweb.net/shared/info/1975966926
+
+---
+
+Some analysis of declensions & strong/weak endings:
+
+| Declension | % Strong Plural | Sample Size |
+| ---------- | --------------- | ----------- |
+| nm1        |  10%            | 1480        |
+| nf2        |  53%            | 806         |
+| nf3        |  30%            | 464         |
+| nm3        |  79%            | 306         |
+| nm4        |  84%            | 764         |
+| nf4        |  65%            | 211         |
+| nf5        |  74%            | 50          |
+| nm2(!)     |  100%           | 2           |
+| nm5(!)     |  100%           | 5           |
+| nf (other) |  22%            | 139         |
+| nm (other) |  23%            | 331         |
+

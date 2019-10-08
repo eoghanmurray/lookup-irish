@@ -581,9 +581,6 @@ and this method can identify strong/weak plurals
                     # their endings across all cases
                     # https://en.wikipedia.org/wiki/Irish_declension
                     parts['plural strength'] = 'strong'
-                    if gender in ['nm1', 'nf2']:
-                        # these are supposed to have weak plurals http://nualeargais.ie/gnag/subst2.htm#plural
-                        print('CHECK PLURAL 4 :', gender, noun, d_word)
                     if d_word.endswith('a') and not any(d_word.endswith(e) for e in strong_plural_endings):
                         pass  # lots of them
                         #print('CHECK PLURAL 2 nf2:', gender, noun, d_word)

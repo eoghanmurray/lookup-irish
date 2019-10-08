@@ -126,12 +126,12 @@ div + .vn{
     /*   font-weight: bold;*/
     color: #383838;
 }
-.genitive-vn-container u {
+.genitive-vn-container u:not(.exc-strong-plural) {
     /* an exception to some declension rule */
     text-decoration-color: red;
 }
 @supports not (text-decoration-color: red) {
-    .genitive-vn-container u {
+    .genitive-vn-container u:not(.exc-strong-plural) {
 	border-bottom:  1px solid red;
 	text-decoration: none;
     }

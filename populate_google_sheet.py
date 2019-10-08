@@ -494,6 +494,37 @@ highlighted as a typical masculine or feminine ending
         print('Unk: %.2f - %r' % (len(unknown)/total_count, unknown))
 
 
+def declensions_with_strong_plural():
+    """
+Break down strong/weak plurals by declensions
+    """
+    sheet = get_sheet()
+    rows = get_range(sheet)
+    if not rows:
+        return 'No rows'
+    from collections import defaultdict
+    counts = defaultdict(int)
+    strongs = defaultdict(int)
+    gender = ['nf', 'nm']
+    decl = ['1', '2', '3', '4', '5']
+    for n, row in enumerate(rows):
+        for g in gender:
+            for d in decl:
+                c = g + d
+                if c in row.Gender:
+                    counts[c] += 1
+                    if 'strong plural' in row.GenitiveVN:
+                        strongs[c] += 1
+                    break
+            else:
+                if g in row.Gender:
+                    counts[g] += 1
+                    if 'strong plural' in row.GenitiveVN:
+                        strongs[g] += 1
+    for d in counts:
+        print('Strong in %s: %.2f (%d)' % (d, strongs[d] / counts[d], counts[d]))
+
+
 parser = argparse.ArgumentParser(
     description='''Populate source spreadsheet for Anki deck
 requires access to shared spreadsheet or you could
@@ -587,4 +618,5 @@ if __name__ == '__main__':
     elif args['test_ending']:
         test_ending(args['test_ending'])
     else:
+        #declensions_with_strong_plural()
         print('Please choose --translate, --meta or --compare')

@@ -275,12 +275,13 @@ def format_declensions(word, decl, gender=None, format='html'):
         is_weak_plural = decl['plural strength'] == 'weak'
         is_strong_plural = decl['plural strength'] == 'strong'
         # http://nualeargais.ie/gnag/subst2.htm#oben
-        # weak plural is almost exclusively present in
-        # the 1st + 2nd declension, but is quite common.
-        if len(gender) > 2 and (
-                (is_weak_plural and gender[-1] not in ['1', '2']) or
-                (is_strong_plural and gender[-1] in ['1', '2'])):
-                middle += ' <u class="nm12">but</u>'
+        # "weak plural is almost exclusively present in
+        # the 1st + 2nd declension, but is quite common"
+        # we are going with our own analysis here
+        if ((is_weak_plural and gender in ['nm3', 'nf4', 'nf5']) or
+            (is_strong_plural and gender in ['nm1'])):
+            # see analysis in declensions_with_strong_plural()
+            middle += ' <u class="exc-strong-plural">but</u>'
         if is_weak_plural:
             middle += ' weak plural'
         elif is_strong_plural:
