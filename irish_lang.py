@@ -270,7 +270,7 @@ def format_declensions(word, decl, gender=None, format='html'):
         if 'gender' not in decl:
             raise Exception('Need a gender set to properly set declensions')
         gender = decl['gender']
-    middle = gender
+    middle = gender.replace('nf', 'n<i>f</i>').replace('nm', 'n<i>m</i>')
     if 'nominative plural' in decl:
         is_weak_plural = decl['plural strength'] == 'weak'
         is_strong_plural = decl['plural strength'] == 'strong'
