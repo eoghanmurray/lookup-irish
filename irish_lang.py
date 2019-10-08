@@ -317,6 +317,8 @@ def format_declensions(word, decl, gender=None, format='html'):
 
 
 def convert_to_bash(r, gender):
+    r = r.replace('<em>', Back.LIGHTWHITE_EX + Fore.BLACK)
+    r = r.replace('</em>', Style.RESET_ALL)
     r = r.replace('<u>', Back.RED)
     r = r.replace('</u>', Style.RESET_ALL)
     if 'nf' in gender:

@@ -539,6 +539,7 @@ and this method can identify strong/weak plurals
         'nta', # braon -> braonta, tonn -> tonnta, srian -> srianta, pian -> pianta
         # TODO: incomplete
     ]
+    teanglann_strong_ending = None
     for i in range(len(part_names), 0, -1):
         for cs in permutations(part_names, i):
             ct = ' & '.join(cs)
@@ -568,6 +569,8 @@ and this method can identify strong/weak plurals
                     # ignore
                     continue
                 if d_word.startswith('-'):
+                    if 'plural' in cs:
+                        teanglann_strong_ending = rhs_words[0].lstrip(' -')
                     d_word = fill_in_dash(d_word, noun)
                 if 'plural' in cs:
                     cs = list(cs)
@@ -623,6 +626,21 @@ and this method can identify strong/weak plurals
         if has_strong_ending:
             print('CHECK PLURAL 1:', gender, parts['nominative plural'], parts['genitive plural'])
         parts['plural strength'] = 'weak'
+    if parts['plural strength'] == 'strong':
+        em_e = None
+        for e in strong_plural_endings:
+            if parts['nominative plural'].endswith(e) and \
+               parts['genitive plural'].endswith(e):
+                em_e = '<em>' + e + '</em>'
+                break
+        else:
+            # no break
+            if teanglann_strong_ending:
+                em_e = '<em>' + teanglann_strong_ending + '</em>'
+        if em_e:
+            for nomg in ['nominative', 'genitive']:
+                w_em_e = parts[nomg + ' plural'][:-len(e)] + em_e
+                parts[nomg + ' plural'] = w_em_e
     apply_gender_hints(noun, gender, parts)
     for k, w in parts.items():
         parts[k] = apply_article(w, gender, k)

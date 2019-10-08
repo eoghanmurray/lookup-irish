@@ -118,7 +118,13 @@ div + .vn{
 }
 .nm-adj i,
 .genitive-vn-container .nm i:not(.weak) {
-   color: darkblue;
+    color: #28f;
+}
+.genitive-vn-container em {
+    /* a strong plural */
+    font-style: normal;
+    /*   font-weight: bold;*/
+    color: #383838;
 }
 .genitive-vn-container u {
    /* an exception to some declension rule */
