@@ -42,6 +42,8 @@ def apply_article(word, gender, part_of_speech, html=True):
     """
 http://nualeargais.ie/gnag/artikel.htm
     """
+    if part_of_speech in ['plural strength']:
+        return word
     preceding_s = word[0] == 's'
     preceding_a_vowel = word[0] in 'aeiouáéíóú'
     preceding_upcase_vowel = word[0] in 'AEIOUÁÉÍÓÚ'
@@ -55,7 +57,7 @@ http://nualeargais.ie/gnag/artikel.htm
     nm = gender.startswith('nm')
     nominative = 'nominative' in part_of_speech
     genitive = 'genitive' in part_of_speech
-    if 'plural' in part_of_speech:
+    if part_of_speech.endswith(' plural'):
         ret = 'na '
     elif genitive:
         if nf:
