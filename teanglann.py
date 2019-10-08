@@ -511,6 +511,7 @@ and this method can identify strong/weak plurals
     flt = clean_text(bs4_get_text(first_line_mark_split), noun)
     flt = flt.split('__xxx_start_trans__')[0]
     flt = flt.replace(', gpl.', ', genitive plural ')
+    flt = flt.replace('; pl.', '; plural ')
 
     parts = {'nominative singular': noun}
     if noun == 'talamh':
