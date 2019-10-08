@@ -666,7 +666,9 @@ rudaí cearta
                     if k in ret:
                         if 'primary' in values[0]['class']:
                             manual_debug()
-                        elif 'ba ' not in values[0].text:
+                        elif 'ba ' not in values[0].text and \
+                             "ní b'" not in values[0].text and \
+                             'ab ' not in values[0].text:
                             print('ignoring', k, values[0].text)
                         continue
                     ret[k] = values[0].text.lower()
@@ -750,7 +752,7 @@ def assign_verbal_noun(verb):
             'gad',
             'fainic',  # used imperatively only
             'batráil',
-    ]:
+    ] and ' ' not in verb:
         print(f'Warning: No verbal noun found for {verb}')
     pass
 

@@ -264,7 +264,7 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                         if sense.get('genitive-plural', None):
                             if 'nominative plural' in sense['genitive-plural-raw'] and \
                                sense['genitive-plural-raw']['plural strength'] == 'unknown':
-                                print('CHECK no strong/weak detected:', row.GA)
+                                print('CHECK no strong/weak detected:', row.GA, row.Gender)
                             if not genitive_plural_raw:
                                 if str(genitive_vn_soup):
                                     genitive_vn_soup.append('\n')
