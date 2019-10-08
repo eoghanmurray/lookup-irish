@@ -609,19 +609,11 @@ and this method can identify strong/weak plurals
             if d_word.startswith('-'):
                 d_word = fill_in_dash(d_word, noun)
             parts['dative singular'] = d_word
-    has_strong_ending = False
-    if 'nominative plural' in parts:
-        for ending in strong_plural_endings:
-            if parts['nominative plural'].endswith(ending):
-                if 'genitive plural' in parts and parts['genitive plural'] != parts['nominative plural']:
-                    print('CHECK PLURAL 5:', gender, parts['nominative plural'], parts['genitive plural'])
-                has_strong_ending = True
-                break
     if 'plural strength' not in parts:
         parts['plural strength'] = 'unknown'
     if parts.get('genitive plural', None) == parts['nominative singular']:
-        if has_strong_ending:
-            print('CHECK PLURAL 1:', gender, parts['nominative plural'], parts['genitive plural'])
+        if parts['plural strength'] == 'strong':
+            print('CHECK PLURAL reset to weak:', gender, parts['nominative singular'], parts['nominative plural'], parts['genitive plural'])
         parts['plural strength'] = 'weak'
     if parts['plural strength'] == 'strong':
         em_e = None
