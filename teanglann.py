@@ -628,6 +628,7 @@ and this method can identify strong/weak plurals
             # no break
             if teanglann_strong_ending:
                 em_e = '<em>' + teanglann_strong_ending + '</em>'
+                e = teanglann_strong_ending
         if em_e:
             for nomg in ['nominative', 'genitive']:
                 w_em_e = parts[nomg + ' plural'][:-len(e)] + em_e
