@@ -572,7 +572,7 @@ and this method can identify strong/weak plurals
                     continue
                 if d_word.startswith('-'):
                     if 'plural' in cs:
-                        teanglann_strong_ending = rhs_words[0].lstrip(' -')
+                        teanglann_strong_ending = rhs_words[0].lstrip(' -')[1:]
                     d_word = fill_in_dash(d_word, noun)
                 if 'plural' in cs:
                     cs = list(cs)
