@@ -504,12 +504,8 @@ Could scrape e.g. https://www.teanglann.ie/en/gram/teist
 but don't want the extra request
 and this method can identify strong/weak plurals
     """
-    first_line_mark_split = copy(first_line)
-    trans = first_line_mark_split.find(class_='trans')
-    if trans:
-        trans.replace_with('__xxx_start_trans__')
-    flt = clean_text(bs4_get_text(first_line_mark_split), noun)
-    flt = flt.split('__xxx_start_trans__')[0]
+    first_line = before_split(first_line, 'trans')
+    flt = clean_text(bs4_get_text(first_line), noun)
     flt = flt.replace(', gpl.', ', genitive plural ')
     flt = flt.replace('; pl.', '; plural ')
 
@@ -691,9 +687,28 @@ rudaí cearta
     return format_adjectives(adjective, ret, format=format)
 
 
+def before_split(node, split_class):
+    if not node.contents:
+        return node
+    from bs4 import BeautifulSoup
+    out = BeautifulSoup('', 'html.parser')
+    for c in node.contents[:]:
+        if isinstance(c, str):
+            out.append(c)
+        elif split_class in c['class']:
+            break
+        elif c.find(class_=split_class):
+            out.append(before_split(c, split_class))
+            break
+        else:
+            out.append(c)
+    return out
+
+
 def assign_verbal_noun(verb):
     for subentries, subentry_labels in get_teanglann_subentries(verb):
-        first_line = subentries[0]
+        first_line = before_split(subentries[0], 'trans')
+
         if first_line.find(title="transitive verb") or \
            first_line.find(title="intransitive verb") or \
            first_line.find(title="and intransitive"):
