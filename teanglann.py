@@ -575,9 +575,18 @@ and this method can identify strong/weak plurals
                         teanglann_strong_ending = rhs_words[0].lstrip(' -')[1:]
                     d_word = fill_in_dash(d_word, noun)
                 if 'plural' in cs:
-                    if not teanglann_strong_ending and d_word.startswith(noun):
-                        # e.g. plural: ~ta
-                        teanglann_strong_ending = d_word[len(noun):]
+                    if not teanglann_strong_ending:
+                        if d_word.startswith(noun):
+                            # e.g. plural: ~ta
+                            teanglann_strong_ending = d_word[len(noun):]
+                        else:
+                            # e.g. plural presented as ollúna rather than -lúna
+                            for i in range(len(noun)):
+                                if noun[i] != d_word[i]:
+                                    break
+                            if i != 0:
+                                # e.g. plural: ~ta
+                                teanglann_strong_ending = d_word[i:]
                     cs = list(cs)
                     cs.remove('plural')
                     cs.append('nominative plural')
