@@ -592,6 +592,7 @@ and this method can identify strong/weak plurals
                     if d_word[-2:] == noun[-2:]:
                         # weak?
                         print('CHECK PLURAL 3:', gender, noun, d_word)
+                d_word = d_word.rstrip('1')
                 for cp in cs:
                     if cp not in parts:
                         parts[cp] = d_word
