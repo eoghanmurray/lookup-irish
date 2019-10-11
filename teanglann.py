@@ -23,6 +23,7 @@ def get_teanglann_senses(
         format='html'):
 
     candidates = get_foclóir_candidates(word)
+    teanglann_count = 0
     candidates = [c.lower() for c in candidates]
     foclóir_candidates = candidates[:]
     candidates = [re.sub(r'ise$', r'ize', c) for c in candidates]
@@ -37,6 +38,11 @@ def get_teanglann_senses(
     }]
 
     for subentries, subentry_labels in get_teanglann_subentries(word):
+        if len(subentries) == 1:
+            teanglann_count += 1
+        else:
+            # count ['', '1. ', '2. '] as 2
+            teanglann_count += len([a for a in subentry_labels if a])
         first_line = subentries[0]
         gender = None
         genitive_vn = None
@@ -330,7 +336,7 @@ def get_teanglann_senses(
         senses = senses[:-1]
 
     if return_counts:
-        return (senses, sum(len(s['raw_definitions']) for s in senses),
+        return (senses, teanglann_count,
                 len(candidates), foclóir_candidates)
     else:
         return senses
