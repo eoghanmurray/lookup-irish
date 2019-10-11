@@ -636,7 +636,9 @@ and this method can identify strong/weak plurals
                     break
         else:
             # no break
-            if teanglann_strong_ending:
+            if teanglann_strong_ending and \
+               parts['nominative plural'].endswith(teanglann_strong_ending) and \
+               parts['genitive plural'].endswith(teanglann_strong_ending):
                 em_e = '<em>' + teanglann_strong_ending + '</em>'
                 e = teanglann_strong_ending
         if em_e:
