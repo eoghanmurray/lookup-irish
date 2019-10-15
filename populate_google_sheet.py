@@ -80,7 +80,7 @@ def insert_block(sheet, range, values):
     }
     result = sheet.values().update(
         spreadsheetId=SPREADSHEET_ID,
-        range=range,
+        range=RANGE.split('!')[0] + '!' + range,
         valueInputOption='RAW',
         body=body).execute()
     print('{0} cells updated.'.format(result.get('updatedCells')))
