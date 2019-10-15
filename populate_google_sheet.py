@@ -237,8 +237,12 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                     if not use_sense:
                         if (len(senses) == 1 and
                             (not row.PoS or (
-                                'types' in sense and
-                                sense['types'].keys() == {row.PoS})
+                                'types' in sense and (
+                                    sense['types'].keys() == {row.PoS} or
+                                    row.PoS == join_parts_of_speech(
+                                        sense['types']
+                                    )
+                                ))
                             ) and (
                                 not row.Gender or
                                 sense['gender'] == row.Gender
