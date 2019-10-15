@@ -123,8 +123,11 @@ div + .vn{
 .genitive-vn-container em {
     /* a strong plural */
     font-style: normal;
-    /*   font-weight: bold;*/
     color: #383838;
+}
+.genitive-vn-container em.single {
+    /* a bit more emphasis for 'í' at the end */
+    font-weight: bold;
 }
 .genitive-vn-container u:not(.exc-strong-plural) {
     /* an exception to some declension rule */
