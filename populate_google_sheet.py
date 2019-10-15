@@ -162,7 +162,7 @@ def populate_empty(refresh=True, limit=15, start_row=2, single_GA=None):
                         EN += '<br>[' + ' / '.join(foclóir_candidates) + ']'
                 else:
                     EN = filter_some_usages(EN)
-                EN = EN.replace('\n', '<li>\n')
+                EN = EN.replace('\n', '\n<li>')
                 Gender = '\n'.join([d['gender'] for d in senses if d['gender']])
 
                 if EN and EN + '\n[AUTO]' != row.EN:
