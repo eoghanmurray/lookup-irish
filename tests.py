@@ -122,6 +122,9 @@ if __name__ == '__main__':
     # no definition, still want to pull back Noun variants
     get_teanglann_definition('meangadh')
 
+    # separate senses with separate genitivevn ('journal' has irisí as plural but 'belief' does not)
+    get_teanglann_definition('iris')
+
     # don't use variant plural breitheamhain
     assign_plural_genitive('breitheamh')
 
