@@ -309,6 +309,7 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
 
                 PoS = join_parts_of_speech(parts_of_speech)
                 GenitiveVN = str(genitive_vn_soup).strip()
+                GenitiveVN = re.sub('\n+', '\n', GenitiveVN)
 
                 update = {}
                 if GenitiveVN != row.GenitiveVN:
