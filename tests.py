@@ -133,3 +133,6 @@ if __name__ == '__main__':
 
     # defined as Adjective only in sense 1.
     get_teanglann_definition('suntasach')
+
+    # don't fill in Noun details for Verb sense
+    get_teanglann_definition('bolg')

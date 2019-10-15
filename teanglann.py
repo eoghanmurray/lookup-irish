@@ -183,8 +183,7 @@ def get_teanglann_senses(
                 else:
                     sense['verbal-noun-examples'] = ['ag ' + vn]
             sense['verbal-noun'] = vn
-
-        if 'Noun' in types:
+        elif 'Noun' in types:
             plural_genitive = sense_assign_plural_genitive(
                 word, first_line, gender
             )
