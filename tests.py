@@ -127,3 +127,6 @@ if __name__ == '__main__':
 
     # 'half' definition is in a 'II' class="subentry"
     get_teanglann_definition('leath')
+
+    # defined as Adjective only in sense 1.
+    get_teanglann_definition('suntasach')

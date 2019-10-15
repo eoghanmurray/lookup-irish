@@ -17,6 +17,80 @@ from focloir import get_foclóir_candidates, foclóir_score_definition
 HAIR_SLASH = ' / '  # unicode, equivalent to '&hairsp;/&hairsp;'
 
 
+def get_line_types_gender(word, line):
+    gender = None
+    types = OrderedDict()  # using as ordered set
+    if line.find(title="feminine") and \
+       line.find(title="masculine"):
+        # 'cara' has '(Var:feminine)' at the end
+        for g in [r'masculine', r'feminine']:
+            r = re.compile(r'var(?:iant)*:\s*' + g, re.I)
+            if g not in re.sub(r, '', bs4_get_text(line)):
+                line.find(title=g).extract()
+
+    # TODO: should look at line only up to opening parenthesis
+
+    if line.find(title="pronoun"):
+        # sé/sí are not nouns
+        types['Pronoun'] = True
+    elif line.find(title="feminine") and \
+       line.find(title="masculine") and \
+       word != 'talamh':
+        # 'thar': has 'thairis (m) thairsti (f)' and is not a noun
+        pass
+    elif (line.find(title="feminine") or
+          line.find(title="masculine")):
+        types['Noun'] = True
+        gender = assign_gender_declension(word, line)
+    if line.find(title="adverb"):
+        types['Adverb'] = True
+    if line.find(title="preposition"):
+        types['Preposition'] = True
+    if line.find(title="adjective"):
+        types['Adjective'] = True
+        gender_a = 'a'
+        dec = line.find(title="adjective").next_sibling
+        # to check: think it only goes up to a3
+        if dec and dec.strip().strip('.') in ['1', '2', '3', '4']:
+            gender_a += dec.strip().strip('.')
+        else:
+            soup_fb = get_definition_soup(word, 'teanglann', lang='ga-fb')
+            entry_fb = soup_fb.find(class_='entry')
+            if soup_fb.find(text='aid3'):
+                gender_a += '3'
+            elif soup_fb.find(text='aid2'):
+                gender_a += '2'
+            elif soup_fb.find(text='aid1'):
+                gender_a += '1'
+            elif not soup_fb.find(text='aid'):
+                # 'thar' spurious adj. in following:
+                # ' of <span title="adjective">a</span> general nature'
+                del types['Adjective']
+                gender_a = None
+        if gender_a:
+            if not gender:
+                gender = gender_a
+            else:
+                gender += '\n' + gender_a
+    if line.find(title="transitive verb"):
+        if 'Verb' not in types:
+            types['Verb'] = OrderedDict()
+        types['Verb']['Transitive'] = True
+    if line.find(title="intransitive verb") or \
+       line.find(title="and intransitive"):
+        if 'Verb' not in types:
+            types['Verb'] = OrderedDict()
+        types['Verb']['Intransitive'] = True
+    if line.find(title="conjunction"):
+        types['Conjugation'] = True
+    if line.find(title="prefix"):
+        types['Prefix'] = True
+    if 'Verb' in types and 'Noun' in types:
+        del types['Noun']
+        gender = None
+    return types, gender
+
+
 def get_teanglann_senses(
         word, return_raw=False, sort_by_foclóir=False, verbose=False,
         return_counts=False,
@@ -44,80 +118,10 @@ def get_teanglann_senses(
             # count ['', '1. ', '2. '] as 2
             teanglann_count += len([a for a in subentry_labels if a])
         first_line = subentries[0]
-        gender = None
         genitive_vn = None
-        types = OrderedDict()  # using as ordered set
-        if first_line.find(title="feminine") and \
-           first_line.find(title="masculine"):
-            # 'cara' has '(Var:feminine)' at the end
-            for g in [r'masculine', r'feminine']:
-                r = re.compile(r'var(?:iant)*:\s*' + g, re.I)
-                if g not in re.sub(r, '', bs4_get_text(first_line)):
-                    first_line.find(title=g).extract()
-
-        # TODO: should look at first_line only up to opening parenthesis
-
-        if first_line.find(title="pronoun"):
-            # sé/sí are not nouns
-            types['Pronoun'] = True
-        elif first_line.find(title="feminine") and \
-           first_line.find(title="masculine") and \
-           word != 'talamh':
-            # 'thar': has 'thairis (m) thairsti (f)' and is not a noun
-            pass
-        elif (first_line.find(title="feminine") or
-              first_line.find(title="masculine")):
-            types['Noun'] = True
-            gender = assign_gender_declension(word, first_line)
-            plural_genitive = sense_assign_plural_genitive(
-                        word, first_line, gender
-                    )
-        if first_line.find(title="adverb"):
-            types['Adverb'] = True
-        if first_line.find(title="preposition"):
-            types['Preposition'] = True
-        if first_line.find(title="adjective"):
-            types['Adjective'] = True
-            gender_a = 'a'
-            dec = first_line.find(title="adjective").next_sibling
-            # to check: think it only goes up to a3
-            if dec and dec.strip().strip('.') in ['1', '2', '3', '4']:
-                gender_a += dec.strip().strip('.')
-            else:
-                soup_fb = get_definition_soup(word, 'teanglann', lang='ga-fb')
-                entry_fb = soup_fb.find(class_='entry')
-                if soup_fb.find(text='aid3'):
-                    gender_a += '3'
-                elif soup_fb.find(text='aid2'):
-                    gender_a += '2'
-                elif soup_fb.find(text='aid1'):
-                    gender_a += '1'
-                elif not soup_fb.find(text='aid'):
-                    # 'thar' spurious adj. in following:
-                    # ' of <span title="adjective">a</span> general nature'
-                    del types['Adjective']
-                    gender_a = None
-            if gender_a:
-                if not gender:
-                    gender = gender_a
-                else:
-                    gender += '\n' + gender_a
-        if first_line.find(title="transitive verb"):
-            if 'Verb' not in types:
-                types['Verb'] = OrderedDict()
-            types['Verb']['Transitive'] = True
-        if first_line.find(title="intransitive verb") or \
-           first_line.find(title="and intransitive"):
-            if 'Verb' not in types:
-                types['Verb'] = OrderedDict()
-            types['Verb']['Intransitive'] = True
-        if first_line.find(title="conjunction"):
-            types['Conjugation'] = True
-        if first_line.find(title="prefix"):
-            types['Prefix'] = True
-        if 'Verb' in types and 'Noun' in types:
-            del types['Noun']
-            gender = None
+        types, gender = get_line_types_gender(word, first_line)
+        if not gender and not types and len(subentries) > 1:
+            types, gender = get_line_types_gender(word, subentries[1])
 
         type_sig = ' & '.join(types.keys())
         sense = senses[-1]
@@ -307,6 +311,9 @@ def get_teanglann_senses(
                 sense['verbal-noun'] = vn
 
             if 'Noun' in types:
+                plural_genitive = sense_assign_plural_genitive(
+                    word, first_line, gender
+                )
                 gp = format_declensions(word, plural_genitive, gender, format)
                 if sense.get('genitive-plural', gp) != gp:
                     senses.append({
