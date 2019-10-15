@@ -132,7 +132,8 @@ def populate_empty(refresh=True, limit=15, start_row=2, single_GA=None):
                     not row.EN or
                     (refresh and row.EN.endswith('[AUTO]'))
                     ):
-                senses = get_teanglann_senses(row.GA)
+                senses, _, _, foclóir_candidates = get_teanglann_senses(
+                    row.GA, return_counts=True)
 
                 parts_of_speech = {}
                 for sense in senses:
