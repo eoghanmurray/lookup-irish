@@ -570,7 +570,7 @@ arg(
     help='''How many spreadsheet rows to update
 set to -1 to update all
 ''',
-    default=10
+    default=-1
 )
 
 arg(
