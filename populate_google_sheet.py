@@ -58,9 +58,13 @@ def get_sheet():
     return sheet
 
 
-def get_range(sheet):
-    result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
-                                range=RANGE).execute()
+def get_range(
+        sheet,
+        spreadsheet_id=SPREADSHEET_ID,
+        spreadsheet_range=RANGE
+):
+    result = sheet.values().get(spreadsheetId=spreadsheet_id,
+                                range=spreadsheet_range).execute()
     values = result.get('values', [])
     if not values:
         return False
