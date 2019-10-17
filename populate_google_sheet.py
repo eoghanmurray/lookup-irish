@@ -203,6 +203,7 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
     sheet = get_sheet()
     rows = get_range(sheet)
     if rows:
+        verb_definitions = {}
         count = 0
         values = []
         range_start = range_end = None
@@ -265,6 +266,8 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                                 if str(genitive_vn_soup):
                                     genitive_vn_soup.append('\n')
                                 genitive_vn_soup.append(inf)
+                        if row.GA not in verb_definitions:
+                            verb_definitions[row.GA] = '\n'.join(sense['definitions'])
                     if sense['gender'] and \
                        'Noun' in sense['types'] and \
                        ('Noun' in row.PoS or not row.PoS):
@@ -338,10 +341,36 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                     else:
                         update['Gender'] = ng
 
+                if 'Verbal Noun' in parts_of_speech and \
+                   parts_of_speech['Verbal Noun'] != True and \
+                   '<aside class="verbal-noun-info">' not in row.EN:
+                    vb = parts_of_speech['Verbal Noun'].split('of ', 1)[-1]
+                    if vb not in verb_definitions:
+                        # e.g. cónaí vs. cónaigh
+                        # actually cónaí (the 'verbal noun') is more important
+                        print('WARNING: missing higher definition of '
+                              f"{vb} for it's verbal noun {row.GA}")
+                    elif vb not in ['gáir', 'oibrigh', 'dearc']:
+                        # cheating as with --meta we're not supposed
+                        # to update definition
+                        vdef = verb_definitions[vb].split('\n')[0]
+                        update['EN'] = row.EN + '\n' + \
+                            '<aside class="verbal-noun-info">' + \
+                            f'verbal noun of {vb} (' + vdef + \
+                            ')</aside>'
+
                 if PoS and (
                         not row.PoS or
                         ('[AUTO]' in row.EN and row.PoS != PoS)):
                     update['PoS'] = PoS
+                elif 'Verbal Noun of' in PoS and \
+                     'Verbal Noun of' not in row.PoS:
+                    del parts_of_speech['Verbal Noun']
+                    if row.PoS == join_parts_of_speech(parts_of_speech):
+                        update['PoS'] = PoS
+                        print(row.GA, 'adding verbal noun:', PoS)
+                    else:
+                        print(row.GA, 'NOT adding verbal noun:', row.PoS, PoS)
 
                 if update:
                     column_start = False
