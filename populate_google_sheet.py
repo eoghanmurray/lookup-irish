@@ -230,6 +230,9 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                     genitive_vn_soup.string.insert_after('\n')
                 genders = []
                 for sense in senses:
+                    if 'Verbal Noun' in sense['types']:
+                        parts_of_speech['Verbal Noun'] = sense['types']['Verbal Noun']
+
                     use_sense = False
                     for d in sense['definitions']:
                         for sd in re.sub(r'^to ', '', d).split(HAIR_SLASH):  # saol life/world vs. life/time/world
@@ -365,12 +368,14 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                     update['PoS'] = PoS
                 elif 'Verbal Noun of' in PoS and \
                      'Verbal Noun of' not in row.PoS:
+                    verbal_noun_of = parts_of_speech['Verbal Noun']
                     del parts_of_speech['Verbal Noun']
                     if row.PoS == join_parts_of_speech(parts_of_speech):
                         update['PoS'] = PoS
                         print(row.GA, 'adding verbal noun:', PoS)
                     else:
-                        print(row.GA, 'NOT adding verbal noun:', row.PoS, PoS)
+                        if row.PoS:
+                            update['PoS'] = row.PoS + ' & Verbal Noun' + verbal_noun_of
 
                 if update:
                     column_start = False
