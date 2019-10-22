@@ -106,7 +106,7 @@ div + .adj,
 div + .nm,
 div + .nf,
 .adj div:not(.other) + .other,
-div + .vn{
+div:not(.vn) + .vn {
    margin-top: 0.6em;
 }
 .adj .noun {
