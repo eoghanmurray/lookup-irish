@@ -363,15 +363,15 @@ def format_adjectives(adjective, variants, format='html',
         print('WARNING: missing plural-nominative', adjective, variants)
     else:
         sp = variants['plural-nominative']
-        r += f'<div class="ex-adj"><span class="noun">{strong_plural_example_noun}</span> {sp}</div>'
+        r += f'\n<div class="ex-adj"><span class="noun">{strong_plural_example_noun}</span> {sp}</div>'
     if 'plural-nominative-weak-consonants' in variants:
         # leabhair fhada
         wc = variants['plural-nominative-weak-consonants']
-        r += f'<div class="ex-adj"><span class="noun">{plural_weak_consonant_example_noun}</span> {wc}</div>'
+        r += f'\n<div class="ex-adj"><span class="noun">{plural_weak_consonant_example_noun}</span> {wc}</div>'
     if 'other-forms-comparative' in variants:
-        r += f'<div class="ex-adj other">' + variants['other-forms-comparative'] + '</div>'
+        r += f'\n<div class="ex-adj other">' + variants['other-forms-comparative'] + '</div>'
     if 'other-forms-superlative' in variants:
-        r += f'<div class="ex-adj other">' + variants['other-forms-superlative'] + '</div>'
+        r += f'\n<div class="ex-adj other">' + variants['other-forms-superlative'] + '</div>'
     if format == 'html':
         r = f'<div class="adj">{r}</div>'
     else:
