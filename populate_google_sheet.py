@@ -335,7 +335,9 @@ def populate_meta(limit=-1, start_row=2, single_GA=None):
                 if genders and \
                    (not row.Gender or row.Gender in ['nf', 'nm']):
                     ng = '\n'.join(genders)
-                    if row.Gender and len(genders) != len(row.Gender.split('\n')):
+                    if '[AUTO]' in row.EN:
+                        update['Gender'] = ng
+                    elif row.Gender and len(genders) != len(row.Gender.split('\n')):
                         print(f'CHECK 1: {row.GA} not updating {row.Gender} to {ng}')
                     elif 'nf' in row.Gender and 'nf' not in ng:
                         print(f'CHECK 2: {row.GA} not updating {row.Gender} to {ng}')
