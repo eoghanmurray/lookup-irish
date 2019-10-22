@@ -140,6 +140,7 @@ def get_teanglann_senses(
         pos = join_parts_of_speech(types)
         sense['pos'] = pos
 
+        all_raw_text = ''
         for subentry in subentries:
             raw_text = clean_text(' '.join(subentry.stripped_strings), word)
             if raw_text.startswith('verbal noun') and ' of ' in raw_text:
@@ -149,6 +150,7 @@ def get_teanglann_senses(
                     types['Verbal Noun'] = True
                 else:
                     types['Verbal Noun'] = ' of ' + verb_name
+            all_raw_text += '\n' + raw_text
 
         if verbose:
             print()
@@ -175,8 +177,8 @@ def get_teanglann_senses(
                 ]
                 vn_examples = []
                 for vt in vnvts:
-                    if vt in raw_text:
-                        vn_examples.append((raw_text.count(vt), vt))
+                    if vt in all_raw_text:
+                        vn_examples.append((all_raw_text.count(vt), vt))
                 if vn_examples:
                     vn_examples.sort(reverse=True)
                     sense['verbal-noun-examples'] = [vte[1] for vte in vn_examples]
