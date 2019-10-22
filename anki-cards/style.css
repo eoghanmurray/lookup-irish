@@ -102,6 +102,12 @@ aside li small {
 .genitive-vn-container i {
    font-style: normal;
 }
+.inhibit-adj ~ .adj,
+.inhibit-adjective ~ .adj,
+.inhibit-noun ~ .nf,
+.inhibit-noun ~ .nm {
+    display: none;
+}
 div + .adj,
 div + .nm,
 div + .nf,
