@@ -125,6 +125,7 @@ def populate_empty(refresh=True, limit=15, start_row=2, single_GA=None):
         count = 0
         values = []
         range_start = None
+        last_EN = None
         for n, row in enumerate(rows):
             cell_no = n + 2  # +1 for 0 index, +1 as we are skipping header
             if cell_no < start_row:
@@ -134,6 +135,7 @@ def populate_empty(refresh=True, limit=15, start_row=2, single_GA=None):
                 pass
             elif row.GA and (
                     not row.EN or
+                    (row.EN == last_EN and row.EN.endswith('[AUTO]')) or
                     (refresh and row.EN.endswith('[AUTO]'))
                     ):
                 senses, _, _, foclóir_candidates = get_teanglann_senses(
@@ -189,7 +191,7 @@ def populate_empty(refresh=True, limit=15, start_row=2, single_GA=None):
                 insert_block(sheet, range_start + ':' + range_end, values)
                 values = []
                 range_start = None
-
+            last_EN = row.EN
             if count == limit:
                 print(f'{count} rows updated')
                 break
