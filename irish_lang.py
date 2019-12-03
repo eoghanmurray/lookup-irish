@@ -141,9 +141,7 @@ def apply_gender_hints(singular, actual_gender, wd=None):
         'int': 0.93,
 
 # Earcail/Uncail are masculine, again lots of nf2/nf5/nf, and only 2 nf3
-# not using, as too easily confused with ['áil', 'íl', 'aíl'] endings
-# which could be m/f http://nualeargais.ie/gnag/3dekl.htm
-        # 'ail': 0.88,
+        'ail': 0.88,
 
 # following supposed to be nf2 according to nualeargais
         'lann': 0.89,  # exceptions: nm1 salann, nm1 anlann
