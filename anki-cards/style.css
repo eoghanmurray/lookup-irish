@@ -103,9 +103,15 @@ aside li small {
    font-style: normal;
 }
 .inhibit-adj ~ .adj,
-.inhibit-adjective ~ .adj,
+.suppress-adj ~ .adj,
+.inhibit-adj ~ .nf-adj,
+.suppress-adj ~ .nf-adj,
+.inhibit-adj ~ .ex-adj,
+.suppress-adj ~ .ex-adj,
 .inhibit-noun ~ .nf,
-.inhibit-noun ~ .nm {
+.inhibit-noun ~ .nm,
+.suppress-noun ~ .nf,
+.suppress-noun ~ .nm {
     display: none;
 }
 div + .adj,
