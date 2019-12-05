@@ -42,7 +42,14 @@ Then you can lookup a word:
      ./lookup_irish.py rith
 
 
-There is also a script `populate_google_sheet.py` which is used as part of an Anki deck: https://ankiweb.net/shared/info/1975966926
+Anki Deck
+---
+
+This project was originally started as a means to automatically provide translations for a top-6,500 Irish words Anki deck available at https://ankiweb.net/shared/info/1975966926
+The `populate_google_sheet.py` script can be used to update this deck, but appropriate credentials are needed, i.e. access to the working spreadsheet at https://docs.google.com/spreadsheets/d/1kiZlZp8weyILstvtL0PfIQkQGzuG7oZfP8n_qkMFAWo
+get in contact if that is needed.
+
+The deck is originally based on  the <a href="https://github.com/michmech/irish-word-frequency">Irish Word Frequency List</a> from Michal Boleslav Měchura. There appear to be some biases towards legal terminology in that word list, and these words have been manually demoted.  Supplemental data is from the <a href="https://www.gaois.ie/en/">Gaois corpus</a>, used to proportionally demote verbal nouns and discover candidate bigrams, and some missing word forms were taken from the fantastic top-500 Liostaí Bhreacadh lists published and available for purchase at <a href="http://breacadh.ie/">breacadh.ie</a>.
 
 ---
 
