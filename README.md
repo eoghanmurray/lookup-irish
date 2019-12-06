@@ -15,7 +15,7 @@ voice (linguistics)
 
 There's a verbose mode also, that prints more info:
 
-![color screenshot of output of './lookup_irish.py -v glór'](verbose.png?raw=true)
+<img src="/verbose.png?raw=true" alt="color screenshot of output of './lookup_irish.py -v glór'" width="700">
 
 
 Features
