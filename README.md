@@ -47,7 +47,8 @@ Anki Deck
 
 This project was originally started as a means to automatically provide translations for a top-6,500 Irish words Anki deck available at https://ankiweb.net/shared/info/1975966926
 
-![example showing a noun and a verb](sample-noun-verb.png?raw=true)
+<img src="/sample-noun-verb.png?raw=true" alt="example showing a noun and a verb" width="445">
+
 
 The deck is designed to enable learning of plurals and genitive cases of nouns at the same time as the noun, and also to learn the verbal noun form alongside the root of verbs.
 
@@ -61,7 +62,7 @@ The deck is originally based on  the <a href="https://github.com/michmech/irish-
 Typical Masculine/Feminine Endings
 ---
 
-![example showing cards with 'cht' endings in both feminine and masculine forms](ending-highlighting.png?raw=true)
+<img src="/ending-highlighting.png?raw=true" alt="example showing cards with 'cht' endings in both feminine and masculine forms" width="445">
 
 Some of the typical masculine/feminine endings are colored blue/pink to reinforce the gender of nouns, and where these endings are 'false friends', the are instead marked with a red underline.  'éisteacht' above is indeed feminine, whereas 'ucht' is masculine.
 
@@ -106,7 +107,7 @@ Adjective Agreement
 ---
 How adjectives agree with the preceeding noun is shown by providing sample masculine/feminine & plural nouns, when there is a difference in the agreement:
 
-![example showing an adjective agreeing with a preceeding noun](adjective-agreement.png?raw=true)
+<img src="/adjective-agreement.png?raw=true" alt="example showing an adjective agreeing with a preceeding noun" width="320">
 
 
 Strong Plurals
