@@ -46,12 +46,24 @@ Anki Deck
 ---
 
 This project was originally started as a means to automatically provide translations for a top-6,500 Irish words Anki deck available at https://ankiweb.net/shared/info/1975966926
-The `populate_google_sheet.py` script can be used to update this deck, but appropriate credentials are needed, i.e. access to the working spreadsheet at https://docs.google.com/spreadsheets/d/1kiZlZp8weyILstvtL0PfIQkQGzuG7oZfP8n_qkMFAWo
-get in contact if that is needed.
 
-The deck is originally based on  the <a href="https://github.com/michmech/irish-word-frequency">Irish Word Frequency List</a> from Michal Boleslav Měchura. There appear to be some biases towards legal terminology in that word list, and these words have been manually demoted.  Supplemental data is from the <a href="https://www.gaois.ie/en/">Gaois corpus</a>, used to proportionally demote verbal nouns and discover candidate bigrams, and some missing word forms were taken from the fantastic top-500 Liostaí Bhreacadh lists published and available for purchase at <a href="http://breacadh.ie/">breacadh.ie</a>.
+![example showing a noun and a verb](sample-noun-verb.png?raw=true)
 
+The deck is designed to enable learning of plurals and genitive cases of nouns at the same time as the noun, and also to learn the verbal noun form alongside the root of verbs.
+
+Definitions have been provided manually for the first 1,000 words, and then subsequently automatically using this project for the subsequent 5,000, with the first 1,000 being cross checked with the automated translations.  The deck has been further improved with manual notes and additions of common 2/3 word idioms and phrasal verbs (bigrams/trigrams).
+
+The `populate_google_sheet.py` script can be used to update this deck, but appropriate credentials are needed, i.e. access to the <a href="https://docs.google.com/spreadsheets/d/1kiZlZp8weyILstvtL0PfIQkQGzuG7oZfP8n_qkMFAWo">working spreadsheet</a>. Get in contact if that is needed.
+
+The deck is originally based on  the <a href="https://github.com/michmech/irish-word-frequency">Irish Word Frequency List</a> from Michal Boleslav Měchura. There appear to be some biases towards legal terminology in that word list, and these words have been manually demoted where noticed.  Supplemental data is from the <a href="https://www.gaois.ie/en/">Gaois corpus</a>, used to proportionally demote cards for verbal nouns (these are also shown in the root verb card as in 'ag tarraingt' above) and discover candidate bigrams, and some missing word forms were taken from the fantastic top-500 Liostaí Bhreacadh lists published and available for purchase at <a href="http://breacadh.ie/">breacadh.ie</a>.
+
+
+Typical Masculine/Feminine Endings
 ---
+
+![example showing cards with 'cht' endings in both feminine and masculine forms](ending-highlighting.png?raw=true)
+
+Some of the typical masculine/feminine endings are colored blue/pink to reinforce the gender of nouns, and where these endings are 'false friends', the are instead marked with a red underline.  'éisteacht' above is indeed feminine, whereas 'ucht' is masculine.
 
 Analysis of selected word endings which are typically masculine or feminine
 
@@ -90,7 +102,18 @@ Analysis of selected word endings which are typically masculine or feminine
 |-aeir | 1 | 1 | 100% | | only 1: carraeir
 | (total masculine) |  2805 | 2805 | 100%
 
+Adjective Agreement
 ---
+How adjectives agree with the preceeding noun is shown by providing sample masculine/feminine & plural nouns, when there is a difference in the agreement:
+
+![example showing an adjective agreeing with a preceeding noun](adjective-agreement.png?raw=true)
+
+
+Strong Plurals
+---
+Strong endings for plural nouns are those highlighted in bold; these are endings that don't change in the genitive plural.
+Some adjectives agree differently with the preceeding noun if that noun has a strong ending:
+e.g. <a href="https://www.teanglann.ie/en/gram/_n_a?n=deoch_fem&a=daor_adj1">ag cheannach na ndeochanna daora</a> (buying the expensive drinks) vs. <a href="https://www.teanglann.ie/en/gram/_n_a?n=bronntanas_masc1&a=daor_adj1">ag cheannach na mbronntanas daor</a> (buying the expensive presents)
 
 
 Some analysis of noun declensions & strong/weak endings:
