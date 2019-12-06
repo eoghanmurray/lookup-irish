@@ -1,4 +1,12 @@
-# lookup_irish.py
+Anki Top 6,500 Irish Words & lookup_irish.py
+---
+
+<img src="/glór.png?raw=true" alt="example card from anki deck" width="300">
+
+Sample from the <a href="https://ankiweb.net/shared/info/1975966926">Anki deck</a> that is the output of this project.  Top 6,500 words Anki deck was originally created by https://github.com/terrysimons ; hi Terry!
+
+Command Line
+---
 
 Scrapes teanglann.ie and focloir.ie and extracts a good English translation for an Irish word combining both websites.
 
