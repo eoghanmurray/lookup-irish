@@ -12,6 +12,7 @@ from copy import copy
 from irish_lang import apply_gender_hints, apply_article
 from irish_lang import format_declensions, format_adjectives
 from irish_lang import lenite, eclipse
+from irish_lang import prefix_h_to_vowel, possessive_mo, possessive_do
 from focloir import get_foclóir_candidates, foclóir_score_definition
 
 HAIR_SLASH = ' / '  # unicode, equivalent to '&hairsp;/&hairsp;'
@@ -166,9 +167,9 @@ def get_teanglann_senses(
                 vnvts = [
                     'ag ' + vn,
                     'a ' + lenite(vn),
-                    'le ' + vn,
-                    'do mo ' + lenite(vn),
-                    'do do ' + lenite(vn),
+                    'le ' + prefix_h_to_vowel(vn),
+                    'do ' + possessive_mo(vn),
+                    'do ' + possessive_do(vn),
                     'á ' + vn,
                     'á ' + lenite(vn),
                     'dár ' + eclipse(vn),
