@@ -170,10 +170,14 @@ def get_teanglann_senses(
                     'le ' + prefix_h_to_vowel(vn),
                     'do ' + possessive_mo(vn),
                     'do ' + possessive_do(vn),
+                    'ag ' + possessive_mo(vn),
+                    'ag ' + possessive_do(vn),
                     'á ' + vn,
                     'á ' + lenite(vn),
                     'dár ' + eclipse(vn),
+                    'ag ár ' + eclipse(vn),
                     'do bhur ' + eclipse(vn),
+                    'ag bhur ' + eclipse(vn),
                     'á ' + eclipse(vn),
                 ]
                 vn_examples = []
