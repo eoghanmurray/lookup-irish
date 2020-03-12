@@ -5,24 +5,15 @@ from download import get_definition_soup, bs4_get_text
 
 def get_foclóir_candidates(word):
     candidates = set()
-    for n in range(1, 18):
-        soup = get_definition_soup(word, 'foclóir', lang='ga', page_no=n)
-        result_lists = soup.find_all(class_='result-list')
-        if not result_lists:
-            if 'No matches found.' in soup.get_text():
-                return set()
-        imprecise_match = False
-        lis = result_lists[0].find_all('li')
-        for result in lis:
-            if result.find(class_='lang_ga').string.strip() == word:
-                candidates.add(result.find(class_='lang_en').string.strip())
-            elif word in result.find(class_='lang_ga').string:
-                # a multi-word version
-                # so for 'cead' we stop on 'cead scoir',
-                # but not on 'céad' (with a fada)
-                imprecise_match = True
-        if imprecise_match or len(lis) < 20:
-            break
+    soup = get_definition_soup(word, 'foclóir', lang='ga', page_no=0)
+    result_lists = soup.find_all(class_='result-list')
+    if not result_lists:
+        if 'No matches found.' in soup.get_text():
+            return set()
+    lis = result_lists[0].find_all('li')
+    for result in lis:
+        if result.find(class_='lang_ga').string.strip() == word:
+            candidates.add(result.find(class_='lang_en').string.strip())
     return candidates
 
 
