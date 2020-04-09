@@ -25,7 +25,14 @@ hr {
 /*_________________ Specific _*/
 .decl {
     font-size: 0.6em;
+    visibility: hidden;  /* only show if scrolling back up from answer card */
+    height: 2px;
 }
+.above-back .decl {
+    visibility: visible;
+    height: auto;
+}
+
 .attribution {
     font-size: 10pt;
     color: grey;
