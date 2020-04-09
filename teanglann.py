@@ -24,8 +24,9 @@ def get_line_types_gender(word, line):
     if line.find(title="feminine") and \
        line.find(title="masculine"):
         # 'cara' has '(Var:feminine)' at the end
+        # 'neantóg' has '(Var:neantán masculine)' at the end
         for g in [r'masculine', r'feminine']:
-            r = re.compile(r'var(?:iant)*:\s*' + g, re.I)
+            r = re.compile(r'\(var(?:iant)*:[^)]*\s*' + g + r'\)', re.I)
             if g not in re.sub(r, '', bs4_get_text(line)):
                 line.find(title=g).extract()
 
