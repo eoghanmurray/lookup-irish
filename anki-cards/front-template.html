@@ -57,8 +57,8 @@
 var audios = document.getElementsByTagName('audio');
 if (audios.length) {
     setTimeout(function() {
-	// doesn't work without setTimeout
+        // doesn't work without setTimeout
         audios[Math.floor(Math.random() * audios.length)].play();
-    }, 10);
+    }, 200);
 }
 </script>
