@@ -11,7 +11,7 @@ google-auth==1.6.3
 google-auth-httplib2==0.0.3
 google-auth-oauthlib==0.4.0
 html5lib==1.0.1
-httplib2==0.13.1
+httplib2==0.18.0
 idna==2.8
 mccabe==0.6.1
 oauthlib==3.1.0
