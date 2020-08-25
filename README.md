@@ -3,7 +3,7 @@ Anki Top 6,500 Irish Words & lookup_irish.py
 
 <img src="/glór.png?raw=true" alt="example card from anki deck" width="300">
 
-Sample from the <a href="https://ankiweb.net/shared/info/1975966926">Anki deck</a> that is the output of this project.  Top 6,500 words Anki deck was originally created by https://github.com/terrysimons ; hi Terry!
+Sample from the <a href="https://ankiweb.net/shared/info/1128787897">Anki deck</a> that is the output of this project.  Top 6,500 words Anki deck was originally created by https://github.com/terrysimons ; hi Terry!
 
 Command Line
 ---
@@ -53,7 +53,7 @@ Then you can lookup a word:
 Anki Deck
 ---
 
-This project was originally started as a means to automatically provide translations for a top-6,500 Irish words Anki deck available at https://ankiweb.net/shared/info/1975966926
+This project was originally started as a means to automatically provide translations for a top-6,500 Irish words Anki deck available at https://ankiweb.net/shared/info/1128787897
 
 <img src="/sample-noun-verb.png?raw=true" alt="example showing a noun and a verb" width="445">
 
