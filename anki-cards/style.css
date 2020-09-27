@@ -144,6 +144,9 @@ div:not(.vn) + .vn {
     font-style: normal;
     color: #383838;
 }
+.nightMode .genitive-vn-container em {
+    color: #4A4A4A;
+}
 .genitive-vn-container em.single {
     /* a bit more emphasis for 'í' at the end */
     font-weight: bold;
@@ -182,6 +185,10 @@ div:not(.vn) + .vn {
     text-align: center;
     color: black;
     background-color: white;
+}
+
+.card.nightMode {
+    background-color: #111111;
 }
 
 /*_________________ Buttons _*/
