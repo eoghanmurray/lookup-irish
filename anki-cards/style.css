@@ -74,6 +74,9 @@ aside {
     padding-right: 0.3em;
     text-indent: -1.3em;
 }
+.nightMode aside {
+    background-color: #4d5e41;
+}
 aside::before {
     content: '\261E';  /* the pointy grammar hand */
     margin-right: 0.3em;
